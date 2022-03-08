@@ -21,9 +21,9 @@ window.addEventListener("load",  async function(evt) {
     print("OPEN");
     ws.send(username);
 
+    const Length = 2;
+    const arr = new Uint8Array(Length);
     const sendUpdate = (x, y) => {
-      const Length = 2;
-      const arr = new Uint8Array(Length);
       arr[0] = 1+x;
       arr[1] = 1+y;
       ws.send(arr)
