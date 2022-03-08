@@ -26,6 +26,8 @@ type Player struct {
   speed float32
 
   draw_options *ebiten.DrawImageOptions
+
+  messages chan UpdateMessage;
 }
 
 func (p *Player) Update (dt float32) {
@@ -33,6 +35,8 @@ func (p *Player) Update (dt float32) {
   p.x += p.dx * dt
   p.y += p.dy * dt
 
+  p.draw_options.GeoM.Reset()
+  p.draw_options.GeoM.Translate(float64(p.x), float64(p.y))
 }
 
 func (p *Player) Render (screen *ebiten.Image) {
@@ -48,6 +52,10 @@ func (g *Game) AddPlayer(name string) *Player {
     y: 100 + rand.Float32() * 100.,
 
     speed: 100,
+
+    draw_options: &ebiten.DrawImageOptions{},
+
+    messages: make(chan UpdateMessage, 1024),
   }
 
   g.players = append(g.players, player)

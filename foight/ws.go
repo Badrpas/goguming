@@ -100,7 +100,8 @@ func RunApi(game *Game) {
   log.SetFlags(0)
 
   http.HandleFunc("/ws", getWsHandler(game))
-  http.HandleFunc("/", home)
+  http.Handle("/", http.FileServer(http.Dir("./static/")))
+
 
   go func() {
     Messages <- Message{
