@@ -21,7 +21,6 @@ func(g *Game) Layout (outWidth, outHeight int) (width, height int) {
 func (g *Game) Update () error {
 	var dt float32 = 1. / 60. // Really disliking that
 
-	g.readMessages()
 
 	for _, player := range g.players {
 		player.Update(dt);

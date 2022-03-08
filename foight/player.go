@@ -31,9 +31,14 @@ type Player struct {
 }
 
 func (p *Player) Update (dt float32) {
+  select {
+  case um := <-p.messages:
+    p.applyUpdateMessage(&um)
+  default:
+  }
 
-  p.x += p.dx * dt
-  p.y += p.dy * dt
+  p.x += p.dx * dt * p.speed
+  p.y += p.dy * dt * p.speed
 
   p.draw_options.GeoM.Reset()
   p.draw_options.GeoM.Translate(float64(p.x), float64(p.y))
@@ -41,6 +46,12 @@ func (p *Player) Update (dt float32) {
 
 func (p *Player) Render (screen *ebiten.Image) {
   screen.DrawImage(img, p.draw_options)
+
+}
+
+func (p *Player) applyUpdateMessage(um *UpdateMessage) {
+  p.dx = float32(um.dx)
+  p.dy = float32(um.dy)
 
 }
 

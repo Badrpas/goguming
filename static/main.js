@@ -20,6 +20,31 @@ window.addEventListener("load",  async function(evt) {
   ws.onopen = function(evt) {
     print("OPEN");
     ws.send(username);
+
+    const sendUpdate = (x, y) => {
+      const Length = 2;
+      const arr = new Uint8Array(Length);
+      arr[0] = 1+x;
+      arr[1] = 1+y;
+      ws.send(arr)
+    }
+
+    document.addEventListener('keydown', e => {
+      switch (e.key) {
+        case 'ArrowUp':
+          sendUpdate(0, -1)
+          break;
+        case 'ArrowDown':
+          sendUpdate(0, +1)
+          break;
+        case 'ArrowLeft':
+          sendUpdate(-1, 0)
+          break;
+        case 'ArrowRight':
+          sendUpdate(+1, 0)
+          break;
+      }
+    });
   }
   ws.onclose = function(evt) {
     print("CLOSE");
