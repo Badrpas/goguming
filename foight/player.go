@@ -31,11 +31,7 @@ type Player struct {
 }
 
 func (p *Player) Update(dt float32) {
-	select {
-	case um := <-p.messages:
-		p.applyUpdateMessage(&um)
-	default:
-	}
+	p.readMessages()
 
 	p.x += p.dx * dt * p.speed
 	p.y += p.dy * dt * p.speed
@@ -49,10 +45,22 @@ func (p *Player) Render(screen *ebiten.Image) {
 
 }
 
-func (p *Player) applyUpdateMessage(um *UpdateMessage) {
-	p.dx = float32(um.dx)
-	p.dy = float32(um.dy)
+func (p *Player) readMessages() {
+	for {
+		select {
+		case um := <-p.messages:
+			p.applyUpdateMessage(&um)
+		default:
+			return
+		}
+	}
+}
 
+func (p *Player) applyUpdateMessage(um *UpdateMessage) {
+	p.dx = float32(um.dx) / 50
+	p.dy = float32(um.dy) / 50
+
+	log.Println(p.dx, p.dy)
 }
 
 func (g *Game) AddPlayer(name string) *Player {
@@ -85,7 +93,7 @@ func (g *Game) indexOfPlayer(p *Player) int {
 
 func (g *Game) RemovePlayer(p *Player) {
 	idx := g.indexOfPlayer(p)
-	log.Printf("remove player idx", idx)
+	log.Println("remove player idx", idx)
 	if idx > -1 {
 		g.players = append(g.players[:idx], g.players[idx+1:]...)
 	}

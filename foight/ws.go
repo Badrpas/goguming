@@ -1,6 +1,7 @@
 package foight
 
 import (
+	"encoding/binary"
 	"github.com/gorilla/websocket"
 
 	"flag"
@@ -17,7 +18,31 @@ type Message struct {
 	payload string
 }
 
-//var Messages = make(chan Message, 1024);
+func shakeHand(c *websocket.Conn) (name string, color uint32, err error) {
+	{
+		log.Println("Reading NAME")
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			log.Print("WS name error:", err)
+			return "", 0, err
+		}
+		name = string(message)
+		log.Println(name)
+	}
+
+	{
+		log.Println("Reading COLOR")
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			log.Print("WS name error:", err)
+			return "", 0, err
+		}
+		color = binary.LittleEndian.Uint32(message)
+		log.Println(message[0], message[1], message[2], message[3])
+	}
+
+	return name, color, nil
+}
 
 func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -30,19 +55,15 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 
 		defer c.Close()
 
-		var name string
-		var player *Player = nil
-		{
-			_, message, err := c.ReadMessage()
-			if err != nil {
-				log.Print("WS name error:", err)
-				return
-			}
-			name = string(message)
-			log.Printf("New player connected: [%s]", name)
-
-			player = game.AddPlayer(name)
+		name, color, err := shakeHand(c)
+		if err != nil {
+			log.Println("Error from handshake:", err)
+			return
 		}
+
+		log.Printf("New player connected: [%s] color: %X", name, color)
+
+		player := game.AddPlayer(name)
 
 		for {
 			_, message, err := c.ReadMessage()

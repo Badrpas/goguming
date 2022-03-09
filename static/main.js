@@ -1,11 +1,15 @@
+import { setupController } from './controller.js';
 
 const getUsername = async () => {
   return 'yoba';
 }
 
+const getColor = async () => {
+  return 0x123456;
+}
+
 window.addEventListener("load",  async function(evt) {
   const output = document.getElementById("output");
-  let ws;
 
   var print = function(message) {
     const d = document.createElement("div");
@@ -15,40 +19,19 @@ window.addEventListener("load",  async function(evt) {
   };
 
   const username = await getUsername();
+  const color = await getColor();
 
-  ws = new WebSocket("ws://localhost:8080/ws");
-  ws.onopen = function(evt) {
+  const ws = new WebSocket(`ws://${window.location.host}/ws`);
+  ws.onopen = function () {
     print("OPEN");
     ws.send(username);
+    ws.send(new Uint32Array([color]));
 
-    const Length = 2;
-    const arr = new Uint8Array(Length);
-    const sendUpdate = (x, y) => {
-      arr[0] = 1+x;
-      arr[1] = 1+y;
-      ws.send(arr)
-    }
-
-    document.addEventListener('keydown', e => {
-      switch (e.key) {
-        case 'ArrowUp':
-          sendUpdate(0, -1)
-          break;
-        case 'ArrowDown':
-          sendUpdate(0, +1)
-          break;
-        case 'ArrowLeft':
-          sendUpdate(-1, 0)
-          break;
-        case 'ArrowRight':
-          sendUpdate(+1, 0)
-          break;
-      }
-    });
+    setupController(ws);
   }
+
   ws.onclose = function(evt) {
     print("CLOSE");
-    ws = null;
   }
   ws.onmessage = function(evt) {
     print("RESPONSE: " + evt.data);
