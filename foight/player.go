@@ -3,6 +3,8 @@ package foight
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/jakecoffman/cp"
+	_ "image/png"
 	"log"
 	"math"
 	"math/rand"
@@ -26,31 +28,40 @@ type Player struct {
 	name  string
 	color uint32
 
-	x, y   float32
-	dx, dy float32
+	x, y   float64
+	dx, dy float64
 	angle  float64
 
-	speed float32
+	speed float64
+
+	body  *cp.Body
+	shape *cp.Shape
 
 	draw_options *ebiten.DrawImageOptions
-
-	messages chan UpdateMessage
+	messages     chan UpdateMessage
 }
 
-func (p *Player) Update(dt float32) {
+func (p *Player) UpdateInputs(dt float64) {
 	p.readMessages()
 
-	p.x += p.dx * dt * p.speed
-	p.y += p.dy * dt * p.speed
+	tx := p.dx * dt * p.speed
+	ty := p.dy * dt * p.speed
+
+	p.body.SetVelocity(tx, ty)
+}
+
+func (p *Player) Update(dt float64) {
+	position := p.body.Position()
+	p.x = position.X
+	p.y = position.Y
 
 	p.draw_options.GeoM.Reset()
-	p.draw_options.GeoM.Translate(img_h/-2, img_h/-2)
+	p.draw_options.GeoM.Translate(img_w/-2, img_h/-2)
 
 	if p.dx != 0 && p.dy != 0 {
 		p.angle = math.Atan2(float64(p.dy), float64(p.dx)) + math.Pi/2
 	}
 	p.draw_options.GeoM.Rotate(p.angle)
-	//log.Println(angle)
 
 	p.draw_options.GeoM.Translate(float64(p.x), float64(p.y))
 }
@@ -83,20 +94,20 @@ func (p *Player) readMessages() {
 }
 
 func (p *Player) applyUpdateMessage(um *UpdateMessage) {
-	p.dx = float32(um.dx) / 50
-	p.dy = float32(um.dy) / 50
-
+	p.dx = float64(um.dx) / 50
+	p.dy = float64(um.dy) / 50
 }
 
 func (g *Game) AddPlayer(name string, color uint32) *Player {
+
 	player := &Player{
 		name:  name,
 		color: color,
 
-		x: 100 + rand.Float32()*300,
-		y: 100 + rand.Float32()*300,
+		x: 100 + rand.Float64()*300,
+		y: 100 + rand.Float64()*300,
 
-		speed: 100,
+		speed: 10000,
 
 		draw_options: &ebiten.DrawImageOptions{},
 
@@ -106,6 +117,17 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 	player.SetColor(color)
 
 	g.players = append(g.players, player)
+
+	body := g.space.AddBody(cp.NewBody(1, cp.INFINITY))
+	body.SetPosition(cp.Vector{player.x, player.y})
+
+	shape := g.space.AddShape(cp.NewCircle(body, img_w/2, cp.Vector{img_w / 2, img_h / 2}))
+	shape.SetElasticity(0)
+	shape.SetFriction(0)
+	shape.SetCollisionType(1)
+
+	player.body = body
+	player.shape = shape
 
 	return player
 }

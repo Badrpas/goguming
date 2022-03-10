@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -10,14 +9,13 @@ import (
 )
 
 const (
-	screenWidth = 800
+	screenWidth  = 800
 	screenHeight = 600
 )
 
-
 func main() {
 
-	g := &foight.Game {}
+	g := foight.NewGame()
 
 	go foight.RunApi(g)
 

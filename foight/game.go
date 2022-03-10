@@ -2,42 +2,51 @@ package foight
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/jakecoffman/cp"
+
 	"image/color"
-	_ "image/png"
 )
 
-
 type Game struct {
-	players []*Player;
+	players      []*Player
 	last_message string
 
+	space *cp.Space
 }
 
-func(g *Game) Layout (outWidth, outHeight int) (width, height int) {
+func NewGame() *Game {
+	game := &Game{
+		space: cp.NewSpace(),
+	}
+
+	return game
+}
+
+func (g *Game) Layout(outWidth, outHeight int) (width, height int) {
 	return 800, 600
 }
 
-func (g *Game) Update () error {
-	var dt float32 = 1. / 60. // Really disliking that
-
+func (g *Game) Update() error {
+	var dt = 1. / 60. // Really disliking that
 
 	for _, player := range g.players {
-		player.Update(dt);
+		player.UpdateInputs(dt)
+	}
+
+	g.space.Step(dt)
+
+	for _, player := range g.players {
+		player.Update(dt)
 	}
 
 	return nil
 }
 
-
-func (g *Game) Draw (screen *ebiten.Image) {
+func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.Black)
 
 	for _, player := range g.players {
-		player.Render(screen);
+		player.Render(screen)
 	}
 
-	if g.last_message != "" {
-		ebitenutil.DebugPrintAt(screen, g.last_message, 100, 100)
-	}
 }
