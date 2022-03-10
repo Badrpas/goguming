@@ -4,10 +4,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"log"
+	"math"
 	"math/rand"
 )
 
 var img *ebiten.Image
+var img_w, img_h float64
 
 func init() {
 	var err error
@@ -15,6 +17,9 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	img_w = float64(img.Bounds().Dx())
+	img_h = float64(img.Bounds().Dy())
 }
 
 type Player struct {
@@ -22,6 +27,7 @@ type Player struct {
 
 	x, y   float32
 	dx, dy float32
+	angle  float64
 
 	speed float32
 
@@ -37,6 +43,14 @@ func (p *Player) Update(dt float32) {
 	p.y += p.dy * dt * p.speed
 
 	p.draw_options.GeoM.Reset()
+	p.draw_options.GeoM.Translate(img_h/-2, img_h/-2)
+
+	if p.dx != 0 && p.dy != 0 {
+		p.angle = math.Atan2(float64(p.dy), float64(p.dx)) + math.Pi/2
+	}
+	p.draw_options.GeoM.Rotate(p.angle)
+	//log.Println(angle)
+
 	p.draw_options.GeoM.Translate(float64(p.x), float64(p.y))
 }
 
@@ -92,7 +106,8 @@ func (g *Game) indexOfPlayer(p *Player) int {
 
 func (g *Game) RemovePlayer(p *Player) {
 	idx := g.indexOfPlayer(p)
-	log.Println("remove player idx", idx)
+	log.Printf("remove player [%s] idx %i", p.name, idx)
+
 	if idx > -1 {
 		g.players = append(g.players[:idx], g.players[idx+1:]...)
 	}
