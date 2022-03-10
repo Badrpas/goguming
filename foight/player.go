@@ -11,7 +11,7 @@ var img *ebiten.Image
 
 func init() {
 	var err error
-	img, _, err = ebitenutil.NewImageFromFile("gopher.png")
+	img, _, err = ebitenutil.NewImageFromFile("ploier.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +60,6 @@ func (p *Player) applyUpdateMessage(um *UpdateMessage) {
 	p.dx = float32(um.dx) / 50
 	p.dy = float32(um.dy) / 50
 
-	log.Println(p.dx, p.dy)
 }
 
 func (g *Game) AddPlayer(name string) *Player {
