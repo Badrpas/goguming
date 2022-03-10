@@ -23,7 +23,8 @@ func init() {
 }
 
 type Player struct {
-	name string
+	name  string
+	color uint32
 
 	x, y   float32
 	dx, dy float32
@@ -59,6 +60,17 @@ func (p *Player) Render(screen *ebiten.Image) {
 
 }
 
+func (p *Player) SetColor(color uint32) {
+
+	p.draw_options.ColorM.Scale(0, 0, 0, 1)
+
+	r := float64((color&0xFF0000)>>4) / 0xff
+	g := float64((color&0x00FF00)>>2) / 0xff
+	b := float64((color&0x0000FF)>>0) / 0xff
+
+	p.draw_options.ColorM.Translate(r, g, b, 0)
+}
+
 func (p *Player) readMessages() {
 	for {
 		select {
@@ -76,12 +88,13 @@ func (p *Player) applyUpdateMessage(um *UpdateMessage) {
 
 }
 
-func (g *Game) AddPlayer(name string) *Player {
+func (g *Game) AddPlayer(name string, color uint32) *Player {
 	player := &Player{
-		name: name,
+		name:  name,
+		color: color,
 
-		x: 100 + rand.Float32()*100.,
-		y: 100 + rand.Float32()*100.,
+		x: 100 + rand.Float32()*300,
+		y: 100 + rand.Float32()*300,
 
 		speed: 100,
 
@@ -89,6 +102,8 @@ func (g *Game) AddPlayer(name string) *Player {
 
 		messages: make(chan UpdateMessage, 1024),
 	}
+
+	player.SetColor(color)
 
 	g.players = append(g.players, player)
 

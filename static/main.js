@@ -5,7 +5,7 @@ const getUsername = async () => {
 }
 
 const getColor = async () => {
-  return 0x123456;
+  return 0xFF00FF;
 }
 
 window.addEventListener("load",  async function(evt) {
