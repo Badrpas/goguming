@@ -1,10 +1,25 @@
 import { setupController } from './controller.js';
 
+const HsbToRgb = (h, s, b) => {
+  s /= 100;
+  b /= 100;
+  const k = (n) => (n + h / 60) % 6;
+  const f = (n) => b * (1 - s * Math.max(0, Math.min(k(n), 4 - k(n), 1)));
+  return [255 * f(5), 255 * f(3), 255 * f(1)].map(Math.round);
+};
+
 const getUsername = async () => {
   return 'yoba';
 }
 
 const getColor = async () => {
+  const color = HsbToRgb(Math.round(Math.random() * 360), 100, 100)
+
+  console.log(color);
+  const lr = (color[0] << 16) + (color[1] << 8) + color[2];
+  console.log(lr.toString(16));
+  return lr
+
   return 0xFF00FF;
 }
 

@@ -23,6 +23,8 @@ func init() {
 
 type Bullet struct {
 	Entity
+
+	on_dmg_dealt func(to *Entity)
 }
 
 func (g *Game) NewBullet(x, y float64) *Bullet {
@@ -32,7 +34,7 @@ func (g *Game) NewBullet(x, y float64) *Bullet {
 	body.SetPosition(cp.Vector{x, y})
 
 	shape := space.AddShape(cp.NewCircle(body, img_w_bullet/2, cp.Vector{}))
-	shape.SetElasticity(0)
+	shape.SetElasticity(1)
 	shape.SetFriction(0)
 	shape.SetCollisionType(1)
 
@@ -83,5 +85,13 @@ func (b *Bullet) applyDamageTo(i interface{}) {
 	}
 
 	log.Println("Do dmg!")
+
+	if entity.on_dmg_received != nil {
+		entity.on_dmg_received(&b.Entity)
+
+		if b.on_dmg_dealt != nil {
+			b.on_dmg_dealt(entity)
+		}
+	}
 
 }

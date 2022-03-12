@@ -20,6 +20,8 @@ type Entity struct {
 
 	preupdate func(e *Entity, dt float64)
 	update    func(e *Entity, dt float64)
+
+	on_dmg_received func(from *Entity)
 }
 
 func NewEntity(
@@ -38,6 +40,7 @@ func NewEntity(
 		shape,
 		image,
 		options,
+		nil,
 		nil,
 		nil,
 	}

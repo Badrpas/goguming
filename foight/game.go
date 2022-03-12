@@ -8,6 +8,11 @@ import (
 	"image/color"
 )
 
+const (
+	ScreenWidth  = 800
+	ScreenHeight = 600
+)
+
 type Game struct {
 	entities []*Entity
 
@@ -19,7 +24,27 @@ func NewGame() *Game {
 		space: cp.NewSpace(),
 	}
 
+	game.space.Iterations = 10
+
+	addWalls(game.space)
+
 	return game
+}
+
+func addWalls(space *cp.Space) {
+
+	walls := []cp.Vector{
+		{0, 0}, {0, ScreenHeight},
+		{ScreenWidth, 0}, {ScreenWidth, ScreenHeight},
+		{0, 0}, {ScreenWidth, 0},
+		{0, ScreenHeight}, {ScreenWidth, ScreenHeight},
+	}
+
+	for i := 0; i < len(walls)-1; i += 2 {
+		shape := space.AddShape(cp.NewSegment(space.StaticBody, walls[i], walls[i+1], 0))
+		shape.SetElasticity(1)
+		shape.SetFriction(1)
+	}
 }
 
 func (g *Game) Layout(outWidth, outHeight int) (width, height int) {
@@ -27,7 +52,7 @@ func (g *Game) Layout(outWidth, outHeight int) (width, height int) {
 }
 
 func (g *Game) Update() error {
-	var dt = 1. / 60. // Really disliking that
+	dt := 1. / 60. // Really disliking that
 
 	for _, e := range g.entities {
 		if e.preupdate != nil {
