@@ -63,7 +63,7 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 			img,
 			&ebiten.DrawImageOptions{},
 		),
-		speed: 10000,
+		speed: 1000,
 
 		cooldown:       300,
 		last_fire_time: time.Now().UnixMilli(),
@@ -83,12 +83,12 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 	idx := g.AddEntity(&player.Entity)
 
 	{ // Physics
-		body := g.space.AddBody(cp.NewBody(1, cp.INFINITY))
+		body := g.space.AddBody(cp.NewBody(1, 1))
 		body.SetPosition(cp.Vector{player.x, player.y})
 		body.UserData = &player.Entity
 
 		shape := g.space.AddShape(cp.NewCircle(body, img_w/2, cp.Vector{}))
-		shape.SetElasticity(0)
+		shape.SetElasticity(0.3)
 		shape.SetFriction(0)
 		shape.SetCollisionType(1)
 
@@ -107,7 +107,8 @@ func (p *Player) UpdateInputs(dt float64) {
 	tx := p.dx * dt * p.speed
 	ty := p.dy * dt * p.speed
 
-	p.body.SetVelocity(tx, ty)
+	//p.body.SetVelocity(tx, ty)
+	p.body.ApplyImpulseAtLocalPoint(cp.Vector{tx, ty}, cp.Vector{})
 
 	if p.is_fire_expected() {
 		p.fire()

@@ -83,8 +83,6 @@ func (b *Bullet) applyDamageTo(i interface{}) {
 		return
 	}
 
-	log.Println("Do dmg!")
-
 	if entity.on_dmg_received != nil {
 		entity.on_dmg_received(&b.Entity)
 

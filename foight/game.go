@@ -25,6 +25,7 @@ func NewGame() *Game {
 	}
 
 	game.space.Iterations = 10
+	game.space.SetDamping(0.1)
 
 	addWalls(game.space)
 
