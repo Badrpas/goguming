@@ -6,6 +6,8 @@ import (
 )
 
 type Entity struct {
+	game *Game
+
 	x, y float64
 
 	angle float64
@@ -18,6 +20,27 @@ type Entity struct {
 
 	preupdate func(e *Entity, dt float64)
 	update    func(e *Entity, dt float64)
+}
+
+func NewEntity(
+	game *Game,
+	x, y, angle float64,
+	body *cp.Body,
+	shape *cp.Shape,
+	image *ebiten.Image,
+	options *ebiten.DrawImageOptions,
+) *Entity {
+
+	return &Entity{
+		game,
+		x, y, angle,
+		body,
+		shape,
+		image,
+		options,
+		nil,
+		nil,
+	}
 }
 
 func (e *Entity) Update(dt float64) {

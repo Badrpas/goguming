@@ -52,14 +52,17 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 		name:  name,
 		color: color,
 
-		Entity: Entity{
-			x:     100 + rand.Float64()*300,
-			y:     100 + rand.Float64()*300,
-			angle: 0,
+		Entity: *NewEntity(
+			g,
+			100+rand.Float64()*300,
+			100+rand.Float64()*300,
+			0,
+			nil,
+			nil,
 
-			img:          img,
-			draw_options: &ebiten.DrawImageOptions{},
-		},
+			img,
+			&ebiten.DrawImageOptions{},
+		),
 		speed: 10000,
 
 		cooldown:       300,
@@ -82,6 +85,7 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 	{ // Physics
 		body := g.space.AddBody(cp.NewBody(1, cp.INFINITY))
 		body.SetPosition(cp.Vector{player.x, player.y})
+		body.UserData = &player.Entity
 
 		shape := g.space.AddShape(cp.NewCircle(body, img_w/2, cp.Vector{}))
 		shape.SetElasticity(0)
