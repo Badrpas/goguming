@@ -11,7 +11,7 @@ const getColor = async () => {
 window.addEventListener("load",  async function(evt) {
   const output = document.getElementById("output");
 
-  var print = function(message) {
+  const print = function(message) {
     const d = document.createElement("div");
     d.textContent = message;
     output.appendChild(d);
@@ -30,8 +30,21 @@ window.addEventListener("load",  async function(evt) {
     setupController(ws);
   }
 
-  ws.onclose = function(evt) {
+  ws.onclose = async function(evt) {
     print("CLOSE");
+
+    while (true) {
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      console.log('retrying connection');
+      try {
+        await fetch(window.location.href)
+        console.log('connection established. reloading');
+        return location.reload()
+      } catch (err) {
+        console.log(`Couldn't get the root. retrying`);
+        await new Promise(resolve => setTimeout(resolve, 3000))
+      }
+    }
   }
   ws.onmessage = function(evt) {
     print("RESPONSE: " + evt.data);

@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"time"
 )
 
 var img *ebiten.Image
@@ -25,20 +26,75 @@ func init() {
 }
 
 type Player struct {
+	Entity
+
+	game *Game
+
 	name  string
 	color uint32
 
-	x, y   float64
 	dx, dy float64
-	angle  float64
+	tx, ty float64
 
 	speed float64
 
-	body  *cp.Body
-	shape *cp.Shape
+	cooldown       int64
+	last_fire_time int64
 
-	draw_options *ebiten.DrawImageOptions
-	messages     chan UpdateMessage
+	messages chan UpdateMessage
+}
+
+func (g *Game) AddPlayer(name string, color uint32) *Player {
+
+	player := &Player{
+		game: g,
+
+		name:  name,
+		color: color,
+
+		Entity: Entity{
+			x:     100 + rand.Float64()*300,
+			y:     100 + rand.Float64()*300,
+			angle: 0,
+
+			img:          img,
+			draw_options: &ebiten.DrawImageOptions{},
+		},
+		speed: 10000,
+
+		cooldown:       300,
+		last_fire_time: time.Now().Unix(),
+
+		messages: make(chan UpdateMessage, 1024),
+	}
+
+	player.Entity.preupdate = func(e *Entity, dt float64) {
+		player.UpdateInputs(dt)
+	}
+	player.Entity.update = func(e *Entity, dt float64) {
+		player.Update(dt)
+	}
+
+	player.SetColor(color)
+
+	idx := g.AddEntity(&player.Entity)
+
+	{ // Physics
+		body := g.space.AddBody(cp.NewBody(1, cp.INFINITY))
+		body.SetPosition(cp.Vector{player.x, player.y})
+
+		shape := g.space.AddShape(cp.NewCircle(body, img_w/2, cp.Vector{}))
+		shape.SetElasticity(0)
+		shape.SetFriction(0)
+		shape.SetCollisionType(1)
+
+		shape.Filter.Group = uint(idx + 1)
+
+		player.body = body
+		player.shape = shape
+	}
+
+	return player
 }
 
 func (p *Player) UpdateInputs(dt float64) {
@@ -48,27 +104,18 @@ func (p *Player) UpdateInputs(dt float64) {
 	ty := p.dy * dt * p.speed
 
 	p.body.SetVelocity(tx, ty)
+
+	if p.is_fire_expected() {
+		p.fire()
+	}
 }
 
 func (p *Player) Update(dt float64) {
-	position := p.body.Position()
-	p.x = position.X
-	p.y = position.Y
-
-	p.draw_options.GeoM.Reset()
-	p.draw_options.GeoM.Translate(img_w/-2, img_h/-2)
-
 	if p.dx != 0 && p.dy != 0 {
 		p.angle = math.Atan2(float64(p.dy), float64(p.dx)) + math.Pi/2
 	}
-	p.draw_options.GeoM.Rotate(p.angle)
 
-	p.draw_options.GeoM.Translate(float64(p.x), float64(p.y))
-}
-
-func (p *Player) Render(screen *ebiten.Image) {
-	screen.DrawImage(img, p.draw_options)
-
+	p.Entity.Update(dt)
 }
 
 func (p *Player) SetColor(color uint32) {
@@ -96,56 +143,22 @@ func (p *Player) readMessages() {
 func (p *Player) applyUpdateMessage(um *UpdateMessage) {
 	p.dx = float64(um.dx) / 50
 	p.dy = float64(um.dy) / 50
+	p.tx = float64(um.tx) / 50
+	p.ty = float64(um.ty) / 50
 }
 
-func (g *Game) AddPlayer(name string, color uint32) *Player {
-
-	player := &Player{
-		name:  name,
-		color: color,
-
-		x: 100 + rand.Float64()*300,
-		y: 100 + rand.Float64()*300,
-
-		speed: 10000,
-
-		draw_options: &ebiten.DrawImageOptions{},
-
-		messages: make(chan UpdateMessage, 1024),
-	}
-
-	player.SetColor(color)
-
-	g.players = append(g.players, player)
-
-	body := g.space.AddBody(cp.NewBody(1, cp.INFINITY))
-	body.SetPosition(cp.Vector{player.x, player.y})
-
-	shape := g.space.AddShape(cp.NewCircle(body, img_w/2, cp.Vector{img_w / 2, img_h / 2}))
-	shape.SetElasticity(0)
-	shape.SetFriction(0)
-	shape.SetCollisionType(1)
-
-	player.body = body
-	player.shape = shape
-
-	return player
+func (p *Player) is_fire_expected() bool {
+	return (time.Now().Unix()-p.last_fire_time) > p.cooldown &&
+		(p.tx*p.tx+p.ty*p.ty) > 0.7
 }
+func (p *Player) fire() {
+	log.Println("Fire")
+	p.last_fire_time = time.Now().Unix()
 
-func (g *Game) indexOfPlayer(p *Player) int {
-	for k, v := range g.players {
-		if p == v {
-			return k
-		}
-	}
-	return -1 //not found.
-}
+	b := p.game.NewBullet(p.x, p.y)
+	b.shape.Filter.Group = p.shape.Filter.Group
 
-func (g *Game) RemovePlayer(p *Player) {
-	idx := g.indexOfPlayer(p)
-	log.Printf("remove player [%s] idx %i", p.name, idx)
+	dir := cp.Vector{p.tx, p.ty}.Normalize()
 
-	if idx > -1 {
-		g.players = append(g.players[:idx], g.players[idx+1:]...)
-	}
+	b.body.SetVelocityVector(dir.Mult(1000.))
 }

@@ -4,6 +4,8 @@ const Length = 4;
 
 export const setupController = (ws) => {
   const arr = new Uint8Array(Length);
+  arr.fill(50);
+
   const sendUpdate = () => {
     ws.send(arr)
   }
