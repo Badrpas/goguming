@@ -41,14 +41,14 @@ func addWalls(space *cp.Space) {
 	}
 
 	for i := 0; i < len(walls)-1; i += 2 {
-		shape := space.AddShape(cp.NewSegment(space.StaticBody, walls[i], walls[i+1], 0))
+		shape := space.AddShape(cp.NewSegment(space.StaticBody, walls[i], walls[i+1], 10))
 		shape.SetElasticity(1)
 		shape.SetFriction(1)
 	}
 }
 
 func (g *Game) Layout(outWidth, outHeight int) (width, height int) {
-	return 800, 600
+	return ScreenWidth, ScreenHeight
 }
 
 func (g *Game) Update() error {
