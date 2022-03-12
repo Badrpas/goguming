@@ -165,6 +165,7 @@ func (p *Player) fire() {
 
 	b := p.game.NewBullet(p.x, p.y)
 	b.shape.Filter.Group = p.shape.Filter.Group
+	b.draw_options.ColorM = p.draw_options.ColorM
 	b.lifespan = 1500
 
 	p.game.AddEntity(&b.Entity)
