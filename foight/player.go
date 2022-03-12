@@ -63,7 +63,7 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 		speed: 10000,
 
 		cooldown:       300,
-		last_fire_time: time.Now().Unix(),
+		last_fire_time: time.Now().UnixMilli(),
 
 		messages: make(chan UpdateMessage, 1024),
 	}
@@ -111,7 +111,9 @@ func (p *Player) UpdateInputs(dt float64) {
 }
 
 func (p *Player) Update(dt float64) {
-	if p.dx != 0 && p.dy != 0 {
+	if p.tx != 0 || p.ty != 0 {
+		p.angle = math.Atan2(float64(p.ty), float64(p.tx)) + math.Pi/2
+	} else if p.dx != 0 || p.dy != 0 {
 		p.angle = math.Atan2(float64(p.dy), float64(p.dx)) + math.Pi/2
 	}
 
@@ -148,15 +150,18 @@ func (p *Player) applyUpdateMessage(um *UpdateMessage) {
 }
 
 func (p *Player) is_fire_expected() bool {
-	return (time.Now().Unix()-p.last_fire_time) > p.cooldown &&
-		(p.tx*p.tx+p.ty*p.ty) > 0.7
+	cooldownExpired := (time.Now().UnixMilli() - p.last_fire_time) > p.cooldown
+	triggerDown := (p.tx*p.tx + p.ty*p.ty) > 0.7
+	return cooldownExpired && triggerDown
 }
+
 func (p *Player) fire() {
-	log.Println("Fire")
-	p.last_fire_time = time.Now().Unix()
+	p.last_fire_time = time.Now().UnixMilli()
 
 	b := p.game.NewBullet(p.x, p.y)
 	b.shape.Filter.Group = p.shape.Filter.Group
+
+	p.game.AddEntity(&b.Entity)
 
 	dir := cp.Vector{p.tx, p.ty}.Normalize()
 

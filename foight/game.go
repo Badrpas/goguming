@@ -38,7 +38,7 @@ func (g *Game) Update() error {
 	g.space.Step(dt)
 
 	for _, e := range g.entities {
-		if e != nil {
+		if e == nil {
 			continue
 		}
 

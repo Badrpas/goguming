@@ -12,7 +12,7 @@ var img_w_bullet, img_h_bullet float64
 
 func init() {
 	var err error
-	img_bullet, _, err = ebitenutil.NewImageFromFile("ploier.png")
+	img_bullet, _, err = ebitenutil.NewImageFromFile("boolit.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func (g *Game) NewBullet(x, y float64) *Bullet {
 	}
 }
 
-func (b *Bullet) Update(dt float64) {
-	b.Entity.Update(dt)
-
-}
+//func (b *Bullet) Update(dt float64) {
+//	b.Entity.Update(dt)
+//
+//}

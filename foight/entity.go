@@ -26,7 +26,12 @@ func (e *Entity) Update(dt float64) {
 	e.y = position.Y
 
 	e.draw_options.GeoM.Reset()
-	e.draw_options.GeoM.Translate(img_w/-2, img_h/-2)
+
+	img_bounds := e.img.Bounds()
+	e.draw_options.GeoM.Translate(
+		float64(img_bounds.Dx()/-2),
+		float64(img_bounds.Dy()/-2),
+	)
 
 	e.draw_options.GeoM.Rotate(e.angle)
 
