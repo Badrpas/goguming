@@ -56,7 +56,7 @@ type Player struct {
 	game *Game
 
 	name  string
-	color uint32
+	color clr.Color
 
 	dx, dy float64
 	tx, ty float64
@@ -69,13 +69,12 @@ type Player struct {
 	messages chan UpdateMessage
 }
 
-func (g *Game) AddPlayer(name string, color uint32) *Player {
+func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 
 	player := &Player{
 		game: g,
 
-		name:  name,
-		color: color,
+		name: name,
 
 		Entity: *NewEntity(
 			g,
@@ -105,7 +104,7 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 	player.render = func(e *Entity, screen *ebiten.Image) {
 		e.Render(screen)
 
-		text.Draw(screen, player.name, mplusNormalFont, int(player.x), int(player.y), clr.White)
+		text.Draw(screen, player.name, mplusNormalFont, int(player.x), int(player.y), player.color)
 	}
 
 	player.SetColor(color)
@@ -155,13 +154,15 @@ func (p *Player) Update(dt float64) {
 	p.Entity.Update(dt)
 }
 
-func (p *Player) SetColor(color uint32) {
+func (p *Player) SetColor(color clr.Color) {
+	p.color = color
 
 	p.draw_options.ColorM.Scale(0, 0, 0, 1)
 
-	r := float64((color&0xFF0000)>>4) / 0xff
-	g := float64((color&0x00FF00)>>2) / 0xff
-	b := float64((color&0x0000FF)>>0) / 0xff
+	rb, gb, bb, _ := color.RGBA()
+	r := float64(rb) / 0xff
+	g := float64(gb) / 0xff
+	b := float64(bb) / 0xff
 
 	p.draw_options.ColorM.Translate(r, g, b, 0)
 }

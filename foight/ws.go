@@ -1,8 +1,8 @@
 package foight
 
 import (
-	"encoding/binary"
 	"github.com/gorilla/websocket"
+	"image/color"
 
 	"flag"
 	"log"
@@ -18,13 +18,13 @@ type Message struct {
 	payload string
 }
 
-func shakeHand(c *websocket.Conn) (name string, color uint32, err error) {
+func shakeHand(c *websocket.Conn) (name string, clr color.Color, err error) {
 	{
 		log.Println("Reading NAME")
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			log.Print("WS name error:", err)
-			return "", 0, err
+			return "", color.White, err
 		}
 		name = string(message)
 		log.Println(name)
@@ -35,13 +35,13 @@ func shakeHand(c *websocket.Conn) (name string, color uint32, err error) {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			log.Print("WS name error:", err)
-			return "", 0, err
+			return "", color.White, err
 		}
-		color = binary.LittleEndian.Uint32(message)
+		clr = color.RGBA{message[0], message[1], message[2], 255}
 		log.Println(message[0], message[1], message[2], message[3])
 	}
 
-	return name, color, nil
+	return name, clr, nil
 }
 
 func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
