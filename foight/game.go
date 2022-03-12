@@ -82,7 +82,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.Black)
 
 	for _, e := range g.entities {
-		e.Render(screen)
+		if e.render != nil {
+			e.render(e, screen)
+		} else {
+			e.Render(screen)
+		}
 	}
 }
 

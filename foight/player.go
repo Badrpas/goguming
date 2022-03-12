@@ -3,7 +3,12 @@ package foight
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/jakecoffman/cp"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
+	clr "image/color"
 	_ "image/png"
 	"log"
 	"math"
@@ -11,8 +16,28 @@ import (
 	"time"
 )
 
-var img *ebiten.Image
-var img_w, img_h float64
+var (
+	img             *ebiten.Image
+	img_w, img_h    float64
+	mplusNormalFont font.Face
+)
+
+func init() {
+	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const dpi = 72
+	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    24,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func init() {
 	var err error
@@ -71,11 +96,16 @@ func (g *Game) AddPlayer(name string, color uint32) *Player {
 		messages: make(chan UpdateMessage, 1024),
 	}
 
-	player.Entity.preupdate = func(e *Entity, dt float64) {
+	player.preupdate = func(e *Entity, dt float64) {
 		player.UpdateInputs(dt)
 	}
-	player.Entity.update = func(e *Entity, dt float64) {
+	player.update = func(e *Entity, dt float64) {
 		player.Update(dt)
+	}
+	player.render = func(e *Entity, screen *ebiten.Image) {
+		e.Render(screen)
+
+		text.Draw(screen, player.name, mplusNormalFont, int(player.x), int(player.y), clr.White)
 	}
 
 	player.SetColor(color)

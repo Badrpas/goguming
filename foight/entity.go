@@ -23,6 +23,7 @@ type Entity struct {
 
 	preupdate func(e *Entity, dt float64)
 	update    func(e *Entity, dt float64)
+	render    func(e *Entity, screen *ebiten.Image)
 
 	on_dmg_received func(from *Entity)
 }
@@ -52,7 +53,9 @@ func NewEntity(
 		nil,
 		nil,
 		nil,
+		nil,
 	}
+
 }
 
 func (e *Entity) Update(dt float64) {
