@@ -30,11 +30,11 @@ type Bullet struct {
 func (g *Game) NewBullet(x, y float64) *Bullet {
 	space := g.space
 
-	body := space.AddBody(cp.NewBody(10, cp.INFINITY))
+	body := space.AddBody(cp.NewBody(10, 10))
 	body.SetPosition(cp.Vector{x, y})
 
 	shape := space.AddShape(cp.NewCircle(body, img_w_bullet/2, cp.Vector{}))
-	shape.SetElasticity(1)
+	shape.SetElasticity(0.5)
 	shape.SetFriction(0)
 	shape.SetCollisionType(1)
 
@@ -63,9 +63,7 @@ func (b *Bullet) Update(dt float64) {
 	e := b.Entity
 	e.Update(dt)
 
-	hit := false
 	e.body.EachArbiter(func(arbiter *cp.Arbiter) {
-		hit = true
 		b1, b2 := arbiter.Bodies()
 		b.applyDamageTo(b1.UserData)
 		b.applyDamageTo(b2.UserData)
@@ -74,6 +72,7 @@ func (b *Bullet) Update(dt float64) {
 
 func (b *Bullet) applyDamageTo(i interface{}) {
 	var entity *Entity
+
 	if e, ok := i.(*Entity); ok {
 		entity = e
 	} else {

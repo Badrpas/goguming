@@ -87,7 +87,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) indexOfEntity(e *Entity) int32 {
 	for k, v := range g.entities {
-		if e == v {
+		if e == v || e.id == v.id { // Should not be dependent on the id
 			return int32(k)
 		}
 	}
@@ -109,8 +109,13 @@ func (g *Game) AddEntity(e *Entity) int32 {
 
 func (g *Game) RemoveEntity(e *Entity) {
 	idx := g.indexOfEntity(e)
-
-	if idx > -1 {
-		g.entities = append(g.entities[:idx], g.entities[idx+1:]...)
+	if idx == -1 {
+		return
 	}
+
+	if e.body != nil {
+		g.space.RemoveBody(e.body)
+	}
+
+	g.entities = append(g.entities[:idx], g.entities[idx+1:]...)
 }

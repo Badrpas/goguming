@@ -164,6 +164,7 @@ func (p *Player) fire() {
 
 	b := p.game.NewBullet(p.x, p.y)
 	b.shape.Filter.Group = p.shape.Filter.Group
+	b.lifespan = 400
 
 	p.game.AddEntity(&b.Entity)
 

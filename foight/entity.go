@@ -3,13 +3,14 @@ package foight
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
+	"time"
 )
 
 type Entity struct {
+	id   uint32
 	game *Game
 
-	x, y float64
-
+	x, y  float64
 	angle float64
 
 	body  *cp.Body
@@ -18,11 +19,15 @@ type Entity struct {
 	img          *ebiten.Image
 	draw_options *ebiten.DrawImageOptions
 
+	created_at, lifespan int64
+
 	preupdate func(e *Entity, dt float64)
 	update    func(e *Entity, dt float64)
 
 	on_dmg_received func(from *Entity)
 }
+
+var id_counter uint32 = 0
 
 func NewEntity(
 	game *Game,
@@ -32,14 +37,18 @@ func NewEntity(
 	image *ebiten.Image,
 	options *ebiten.DrawImageOptions,
 ) *Entity {
+	id_counter += 1
 
 	return &Entity{
+		id_counter,
 		game,
 		x, y, angle,
 		body,
 		shape,
 		image,
 		options,
+		time.Now().UnixMilli(),
+		-1,
 		nil,
 		nil,
 		nil,
@@ -47,6 +56,11 @@ func NewEntity(
 }
 
 func (e *Entity) Update(dt float64) {
+	if e.lifespan > 0 && (TimeNow()-e.created_at) >= e.lifespan {
+		e.game.RemoveEntity(e)
+		return
+	}
+
 	position := e.body.Position()
 	e.x = position.X
 	e.y = position.Y
