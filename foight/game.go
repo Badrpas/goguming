@@ -116,6 +116,9 @@ func (g *Game) RemoveEntity(e *Entity) {
 	if e.body != nil {
 		g.space.RemoveBody(e.body)
 	}
+	if e.shape != nil {
+		g.space.RemoveShape(e.shape)
+	}
 
 	g.entities = append(g.entities[:idx], g.entities[idx+1:]...)
 }
