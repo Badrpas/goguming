@@ -21,6 +21,8 @@ type Entity struct {
 
 	created_at, lifespan int64
 
+	timeholder *TimeHolder
+
 	preupdate func(e *Entity, dt float64)
 	update    func(e *Entity, dt float64)
 	render    func(e *Entity, screen *ebiten.Image)
@@ -49,6 +51,7 @@ func NewEntity(
 		&ebiten.DrawImageOptions{},
 		time.Now().UnixMilli(),
 		-1,
+		&TimeHolder{},
 		nil,
 		nil,
 		nil,
@@ -58,6 +61,8 @@ func NewEntity(
 }
 
 func (e *Entity) Update(dt float64) {
+	e.timeholder.Update()
+
 	if e.lifespan > 0 && (TimeNow()-e.created_at) >= e.lifespan {
 		e.game.RemoveEntity(e)
 		return

@@ -1,7 +1,6 @@
 package foight
 
 import (
-	"fmt"
 	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
@@ -13,6 +12,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -21,7 +21,8 @@ var (
 )
 
 const (
-	DEFAULT_HP = 5
+	DEFAULT_HP         = 5
+	INVINCIBILITY_TIME = int64(1000)
 )
 
 func init() {
@@ -49,7 +50,8 @@ type Player struct {
 	name  string
 	color clr.Color
 
-	hp int32
+	hp            int32
+	is_invincible bool
 
 	dx, dy float64
 	tx, ty float64
@@ -96,13 +98,21 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 	player.render = func(e *Entity, screen *ebiten.Image) {
 		e.Render(screen)
 
-		info := fmt.Sprintf("%s [%d]", player.name, player.hp)
-		l := float64(len(info))
-		text.Draw(screen, info, mplusNormalFont, int(player.x-l*4), int(player.y-42), player.color)
+		info_hp := strings.Repeat("■", int(player.hp))
+		l := float64(len(player.name))
+		ll := float64(len(info_hp))
+
+		text.Draw(screen, player.name, mplusNormalFont, int(player.x-l*4), int(player.y-62), player.color)
+		text.Draw(screen, info_hp, mplusNormalFont, int(player.x-ll*2.5), int(player.y-42), player.color)
 	}
 
 	player.on_dmg_received = func(from *Entity, dmg int32) {
+		if player.is_invincible {
+			return
+		}
+
 		player.hp -= dmg
+
 		if player.hp <= 0 {
 			player.hp = DEFAULT_HP
 
@@ -113,6 +123,7 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 	}
 
 	player.SetColor(color)
+	player.SetInvincible(INVINCIBILITY_TIME)
 
 	g.AddEntity(&player.Entity)
 
@@ -172,6 +183,18 @@ func (p *Player) SetColor(color clr.Color) {
 	b := float64(bb) / 0xFFFF
 
 	p.draw_options.ColorM.Translate(r, g, b, 0)
+}
+
+func (p *Player) SetInvincible(duration int64) {
+	p.is_invincible = true
+	precolor := p.color
+
+	p.draw_options.ColorM.Scale(0.4, 0.4, 0.4, 1)
+
+	p.timeholder.SetTimeout(func() {
+		p.is_invincible = false
+		p.SetColor(precolor)
+	}, duration)
 }
 
 func (p *Player) readMessages() {
