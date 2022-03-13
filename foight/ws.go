@@ -7,6 +7,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	//_ "net/http/pprof"
 )
 
 var addr = flag.String("addr", "0.0.0.0:8080", "http service address")
@@ -88,6 +89,6 @@ func RunApi(game *Game) {
 	http.HandleFunc("/ws", getWsHandler(game))
 	http.Handle("/", http.FileServer(http.Dir("./static/")))
 
-	log.Println("Starting HTTP server")
+	log.Println("Starting HTTP server on", *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
