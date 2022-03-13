@@ -218,7 +218,7 @@ func (p *Player) fire() {
 	b := p.game.NewBullet(p.x, p.y)
 	b.shape.Filter.Group = p.shape.Filter.Group
 	b.draw_options.ColorM = p.draw_options.ColorM
-	b.lifespan = 1500
+	b.lifespan = 800
 	b.on_dmg_dealt = on_bullet_dmg_dealt
 
 	p.game.AddEntity(&b.Entity)

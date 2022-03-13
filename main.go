@@ -8,18 +8,13 @@ import (
 	"game/foight"
 )
 
-const (
-	screenWidth  = 800
-	screenHeight = 600
-)
-
 func main() {
 
 	g := foight.NewGame()
 
 	go foight.RunApi(g)
 
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(foight.ScreenWidth, foight.ScreenHeight)
 	ebiten.SetWindowTitle("goguming")
 
 	if err := ebiten.RunGame(g); err != nil {
