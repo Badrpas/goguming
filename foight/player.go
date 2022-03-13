@@ -22,7 +22,7 @@ var (
 
 const (
 	DEFAULT_HP         = 5
-	INVINCIBILITY_TIME = int64(1000)
+	INVINCIBILITY_TIME = int64(2.5 * 1000)
 )
 
 func init() {
@@ -74,8 +74,8 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 
 		Entity: *NewEntity(
 			g,
-			100+rand.Float64()*(ScreenWidth-200),
-			100+rand.Float64()*(ScreenHeight-200),
+			-200,
+			-200,
 			nil,
 			nil,
 
@@ -114,22 +114,16 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 		player.hp -= dmg
 
 		if player.hp <= 0 {
-			player.hp = DEFAULT_HP
-
-			player.x = 100 + rand.Float64()*(ScreenWidth-200)
-			player.y = 100 + rand.Float64()*(ScreenHeight-200)
-			player.body.SetPosition(cp.Vector{player.x, player.y})
+			player.Respawn()
 		}
 	}
 
 	player.SetColor(color)
-	player.SetInvincible(INVINCIBILITY_TIME)
 
 	g.AddEntity(&player.Entity)
 
 	{ // Physics
 		body := g.space.AddBody(cp.NewBody(1, 1))
-		body.SetPosition(cp.Vector{player.x, player.y})
 		body.UserData = &player.Entity
 
 		radius := float64(imagestore.Images["ploier.png"].Bounds().Dx() / 2)
@@ -145,7 +139,19 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 		player.shape = shape
 	}
 
+	player.Respawn()
+
 	return player
+}
+
+func (player *Player) Respawn() {
+	player.hp = DEFAULT_HP
+
+	player.x = 100 + rand.Float64()*(ScreenWidth-200)
+	player.y = 100 + rand.Float64()*(ScreenHeight-200)
+	player.body.SetPosition(cp.Vector{player.x, player.y})
+
+	player.SetInvincible(INVINCIBILITY_TIME)
 }
 
 func (p *Player) UpdateInputs(dt float64) {
@@ -189,9 +195,22 @@ func (p *Player) SetInvincible(duration int64) {
 	p.is_invincible = true
 	precolor := p.color
 
+	p.shape.SetSensor(true)
 	p.draw_options.ColorM.Scale(0.4, 0.4, 0.4, 1)
 
+	iteration := 1
+	interval_id := p.timeholder.SetInterval(func() {
+		iteration++
+		if iteration%2 == 0 {
+			p.draw_options.ColorM.Scale(0.4, 0.4, 0.4, 1)
+		} else {
+			p.SetColor(precolor)
+		}
+	}, 300)
+
 	p.timeholder.SetTimeout(func() {
+		p.timeholder.ClearInterval(interval_id)
+		p.shape.SetSensor(false)
 		p.is_invincible = false
 		p.SetColor(precolor)
 	}, duration)
