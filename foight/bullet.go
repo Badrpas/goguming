@@ -24,7 +24,9 @@ func init() {
 type Bullet struct {
 	Entity
 
-	on_dmg_dealt func(to *Entity)
+	dmg int32
+
+	on_dmg_dealt func(b *Bullet, to *Entity)
 }
 
 func (g *Game) NewBullet(x, y float64) *Bullet {
@@ -48,6 +50,8 @@ func (g *Game) NewBullet(x, y float64) *Bullet {
 			img_bullet,
 			&ebiten.DrawImageOptions{},
 		),
+
+		dmg: 1,
 	}
 
 	body.UserData = &b.Entity
@@ -84,10 +88,10 @@ func (b *Bullet) applyDamageTo(i interface{}) {
 	}
 
 	if entity.on_dmg_received != nil {
-		entity.on_dmg_received(&b.Entity)
+		entity.on_dmg_received(&b.Entity, b.dmg)
 
 		if b.on_dmg_dealt != nil {
-			b.on_dmg_dealt(entity)
+			b.on_dmg_dealt(b, entity)
 		}
 	}
 

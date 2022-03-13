@@ -25,7 +25,7 @@ type Entity struct {
 	update    func(e *Entity, dt float64)
 	render    func(e *Entity, screen *ebiten.Image)
 
-	on_dmg_received func(from *Entity)
+	on_dmg_received func(from *Entity, amount int32)
 }
 
 var id_counter uint32 = 0
@@ -83,4 +83,8 @@ func (e *Entity) Update(dt float64) {
 
 func (e *Entity) Render(screen *ebiten.Image) {
 	screen.DrawImage(e.img, e.draw_options)
+}
+
+func (e *Entity) RemoveFromGame() {
+	e.game.RemoveEntity(e)
 }

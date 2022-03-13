@@ -1,6 +1,7 @@
 package foight
 
 import (
+	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
@@ -22,6 +23,10 @@ var (
 	mplusNormalFont font.Face
 )
 
+const (
+	DEFAULT_HP = 5
+)
+
 func init() {
 	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
 	if err != nil {
@@ -30,7 +35,7 @@ func init() {
 
 	const dpi = 72
 	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
-		Size:    24,
+		Size:    16,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
@@ -58,6 +63,8 @@ type Player struct {
 	name  string
 	color clr.Color
 
+	hp int32
+
 	dx, dy float64
 	tx, ty float64
 
@@ -75,11 +82,12 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 		game: g,
 
 		name: name,
+		hp:   DEFAULT_HP,
 
 		Entity: *NewEntity(
 			g,
-			100+rand.Float64()*300,
-			100+rand.Float64()*300,
+			100+rand.Float64()*(ScreenWidth-200),
+			100+rand.Float64()*(ScreenHeight-200),
 			0,
 			nil,
 			nil,
@@ -104,7 +112,20 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 	player.render = func(e *Entity, screen *ebiten.Image) {
 		e.Render(screen)
 
-		text.Draw(screen, player.name, mplusNormalFont, int(player.x), int(player.y), player.color)
+		info := fmt.Sprintf("%s [%d]", player.name, player.hp)
+		l := float64(len(info))
+		text.Draw(screen, info, mplusNormalFont, int(player.x-l*4), int(player.y-42), player.color)
+	}
+
+	player.on_dmg_received = func(from *Entity, dmg int32) {
+		player.hp -= dmg
+		if player.hp <= 0 {
+			player.hp = DEFAULT_HP
+
+			player.x = 100 + rand.Float64()*(ScreenWidth-200)
+			player.y = 100 + rand.Float64()*(ScreenHeight-200)
+			player.body.SetPosition(cp.Vector{player.x, player.y})
+		}
 	}
 
 	player.SetColor(color)
@@ -160,9 +181,9 @@ func (p *Player) SetColor(color clr.Color) {
 	p.draw_options.ColorM.Scale(0, 0, 0, 1)
 
 	rb, gb, bb, _ := color.RGBA()
-	r := float64(rb) / 0xff
-	g := float64(gb) / 0xff
-	b := float64(bb) / 0xff
+	r := float64(rb) / 0xFFFF
+	g := float64(gb) / 0xFFFF
+	b := float64(bb) / 0xFFFF
 
 	p.draw_options.ColorM.Translate(r, g, b, 0)
 }
@@ -198,10 +219,15 @@ func (p *Player) fire() {
 	b.shape.Filter.Group = p.shape.Filter.Group
 	b.draw_options.ColorM = p.draw_options.ColorM
 	b.lifespan = 1500
+	b.on_dmg_dealt = on_bullet_dmg_dealt
 
 	p.game.AddEntity(&b.Entity)
 
 	dir := cp.Vector{p.tx, p.ty}.Normalize()
 
 	b.body.SetVelocityVector(dir.Mult(1000.))
+}
+
+func on_bullet_dmg_dealt(b *Bullet, to *Entity) {
+	b.Entity.RemoveFromGame()
 }
