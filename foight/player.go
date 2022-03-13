@@ -130,7 +130,7 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 
 	player.SetColor(color)
 
-	idx := g.AddEntity(&player.Entity)
+	g.AddEntity(&player.Entity)
 
 	{ // Physics
 		body := g.space.AddBody(cp.NewBody(1, 1))
@@ -142,6 +142,7 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 		shape.SetFriction(0)
 		shape.SetCollisionType(1)
 
+		idx := player.Entity.id
 		shape.Filter.Group = uint(idx + 1)
 
 		player.body = body
@@ -158,10 +159,11 @@ func (p *Player) UpdateInputs(dt float64) {
 	ty := p.dy * dt * p.speed
 
 	//p.body.SetVelocity(tx, ty)
-	p.body.ApplyImpulseAtLocalPoint(cp.Vector{tx, ty}, cp.Vector{})
+	impulse := cp.Vector{tx, ty}
+	p.body.ApplyImpulseAtLocalPoint(impulse, cp.Vector{})
 
 	if p.is_fire_expected() {
-		p.fire()
+		p.fire(impulse)
 	}
 }
 
@@ -212,7 +214,7 @@ func (p *Player) is_fire_expected() bool {
 	return cooldownExpired && triggerDown
 }
 
-func (p *Player) fire() {
+func (p *Player) fire(player_impulse cp.Vector) {
 	p.last_fire_time = time.Now().UnixMilli()
 
 	b := p.game.NewBullet(p.x, p.y)
@@ -225,7 +227,9 @@ func (p *Player) fire() {
 
 	dir := cp.Vector{p.tx, p.ty}.Normalize()
 
-	b.body.SetVelocityVector(dir.Mult(1000.))
+	p.body.Force()
+
+	b.body.SetVelocityVector(dir.Mult(1000.).Add(p.body.Velocity().Mult(1.5)))
 }
 
 func on_bullet_dmg_dealt(b *Bullet, to *Entity) {
