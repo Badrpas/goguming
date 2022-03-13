@@ -2,15 +2,14 @@ package foight
 
 import (
 	"fmt"
+	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/jakecoffman/cp"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	clr "image/color"
-	_ "image/png"
 	"log"
 	"math"
 	"math/rand"
@@ -18,8 +17,6 @@ import (
 )
 
 var (
-	img             *ebiten.Image
-	img_w, img_h    float64
 	mplusNormalFont font.Face
 )
 
@@ -42,17 +39,6 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func init() {
-	var err error
-	img, _, err = ebitenutil.NewImageFromFile("ploier.png")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	img_w = float64(img.Bounds().Dx())
-	img_h = float64(img.Bounds().Dy())
 }
 
 type Player struct {
@@ -92,7 +78,7 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 			nil,
 			nil,
 
-			img,
+			imagestore.Images["ploier.png"],
 			&ebiten.DrawImageOptions{},
 		),
 		speed: 1000,
@@ -137,7 +123,8 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 		body.SetPosition(cp.Vector{player.x, player.y})
 		body.UserData = &player.Entity
 
-		shape := g.space.AddShape(cp.NewCircle(body, img_w/2, cp.Vector{}))
+		radius := float64(imagestore.Images["ploier.png"].Bounds().Dx() / 2)
+		shape := g.space.AddShape(cp.NewCircle(body, radius, cp.Vector{}))
 		shape.SetElasticity(0.3)
 		shape.SetFriction(0)
 		shape.SetCollisionType(1)

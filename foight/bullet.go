@@ -1,21 +1,16 @@
 package foight
 
 import (
+	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/jakecoffman/cp"
-	"log"
 )
 
 var img_bullet *ebiten.Image
 var img_w_bullet, img_h_bullet float64
 
 func init() {
-	var err error
-	img_bullet, _, err = ebitenutil.NewImageFromFile("boolit.png")
-	if err != nil {
-		log.Fatal(err)
-	}
+	img_bullet = imagestore.Images["boolit.png"]
 
 	img_w_bullet = float64(img_bullet.Bounds().Dx())
 	img_h_bullet = float64(img_bullet.Bounds().Dy())
