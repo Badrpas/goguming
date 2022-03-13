@@ -74,12 +74,10 @@ func (g *Game) AddPlayer(name string, color clr.Color) *Player {
 			g,
 			100+rand.Float64()*(ScreenWidth-200),
 			100+rand.Float64()*(ScreenHeight-200),
-			0,
 			nil,
 			nil,
 
 			imagestore.Images["ploier.png"],
-			&ebiten.DrawImageOptions{},
 		),
 		speed: 1000,
 
@@ -145,12 +143,11 @@ func (p *Player) UpdateInputs(dt float64) {
 	tx := p.dx * dt * p.speed
 	ty := p.dy * dt * p.speed
 
-	//p.body.SetVelocity(tx, ty)
 	impulse := cp.Vector{tx, ty}
 	p.body.ApplyImpulseAtLocalPoint(impulse, cp.Vector{})
 
 	if p.is_fire_expected() {
-		p.fire(impulse)
+		p.fire()
 	}
 }
 
@@ -201,7 +198,7 @@ func (p *Player) is_fire_expected() bool {
 	return cooldownExpired && triggerDown
 }
 
-func (p *Player) fire(player_impulse cp.Vector) {
+func (p *Player) fire() {
 	p.last_fire_time = time.Now().UnixMilli()
 
 	b := p.game.NewBullet(p.x, p.y)

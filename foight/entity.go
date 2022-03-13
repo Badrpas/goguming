@@ -32,22 +32,21 @@ var id_counter uint32 = 0
 
 func NewEntity(
 	game *Game,
-	x, y, angle float64,
+	x, y float64,
 	body *cp.Body,
 	shape *cp.Shape,
 	image *ebiten.Image,
-	options *ebiten.DrawImageOptions,
 ) *Entity {
 	id_counter += 1
 
 	return &Entity{
 		id_counter,
 		game,
-		x, y, angle,
+		x, y, 0,
 		body,
 		shape,
 		image,
-		options,
+		&ebiten.DrawImageOptions{},
 		time.Now().UnixMilli(),
 		-1,
 		nil,

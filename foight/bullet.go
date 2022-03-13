@@ -39,11 +39,9 @@ func (g *Game) NewBullet(x, y float64) *Bullet {
 		Entity: *NewEntity(
 			g,
 			x, y,
-			0,
 			body,
 			shape,
 			img_bullet,
-			&ebiten.DrawImageOptions{},
 		),
 
 		dmg: 1,
