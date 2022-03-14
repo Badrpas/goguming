@@ -2,6 +2,7 @@ package levelmap
 
 import (
 	"game/foight"
+	"github.com/jakecoffman/cp"
 	"github.com/lafriks/go-tiled"
 	"github.com/solarlune/ldtkgo"
 	"log"
@@ -47,6 +48,23 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 
 		b := foight.NewBlock(x, y)
 		b.Init(game)
+	}
+
+	for _, objectGroup := range gameMap.ObjectGroups {
+		var points = make([]cp.Vector, len(objectGroup.Objects))
+		switch objectGroup.Name {
+		case "player_spawn_points":
+			game.PlayerSpawnPoints = points
+		case "item_spawn_points":
+			game.ItemSpawnPoints = points
+		default:
+			log.Println("Unknows object group name", objectGroup.Name)
+			continue
+		}
+
+		for i, info := range objectGroup.Objects {
+			points[i] = cp.Vector{info.X, info.Y}
+		}
 	}
 
 	return nil

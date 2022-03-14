@@ -16,6 +16,9 @@ const (
 type Game struct {
 	Entities []*Entity
 
+	PlayerSpawnPoints []cp.Vector
+	ItemSpawnPoints   []cp.Vector
+
 	Space *cp.Space
 }
 
