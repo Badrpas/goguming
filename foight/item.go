@@ -32,6 +32,7 @@ func (i *Item) Init(game *Game) int32 {
 		player, ok := other.Holder.(*Player)
 		if ok {
 			i.OnPickup(player)
+			game.RemoveEntity(i.Entity)
 		}
 	}
 
