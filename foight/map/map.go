@@ -58,7 +58,7 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 		case "item_spawn_points":
 			game.ItemSpawnPoints = points
 		default:
-			log.Println("Unknows object group name", objectGroup.Name)
+			log.Println("Unknown object group name", objectGroup.Name)
 			continue
 		}
 
