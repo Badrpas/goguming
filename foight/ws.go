@@ -35,7 +35,7 @@ func shakeHand(c *websocket.Conn) (name string, clr color.Color, err error) {
 		log.Println("Reading COLOR")
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			log.Print("WS name error:", err)
+			log.Print("WS color error:", err)
 			return "", color.White, err
 		}
 		clr = color.RGBA{message[0], message[1], message[2], 255}

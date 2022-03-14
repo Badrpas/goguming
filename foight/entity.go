@@ -16,17 +16,20 @@ type Entity struct {
 	Body  *cp.Body
 	Shape *cp.Shape
 
-	img      *ebiten.Image
+	Img      *ebiten.Image
 	DrawOpts *ebiten.DrawImageOptions
 
 	CreatedAt, Lifespan int64
 
-	timeholder *TimeHolder
+	TimeManager *TimeHolder
+
+	Holder interface{}
 
 	PreUpdateFn func(e *Entity, dt float64)
 	UpdateFn    func(e *Entity, dt float64)
 	RenderFn    func(e *Entity, screen *ebiten.Image)
 
+	OnCollision   func(e, other *Entity)
 	OnDmgReceived func(from *Entity, amount int32)
 }
 
@@ -56,6 +59,8 @@ func NewEntity(
 		nil,
 		nil,
 		nil,
+		nil,
+		nil,
 	}
 
 }
@@ -64,7 +69,7 @@ func (e *Entity) SetRenderFn(fn func(e *Entity, screen *ebiten.Image)) {
 }
 
 func (e *Entity) Update(dt float64) {
-	e.timeholder.Update()
+	e.TimeManager.Update()
 
 	if e.Lifespan > 0 && (TimeNow()-e.CreatedAt) >= e.Lifespan {
 		e.Game.RemoveEntity(e)
@@ -77,7 +82,7 @@ func (e *Entity) Update(dt float64) {
 
 	e.DrawOpts.GeoM.Reset()
 
-	img_bounds := e.img.Bounds()
+	img_bounds := e.Img.Bounds()
 	e.DrawOpts.GeoM.Translate(
 		float64(img_bounds.Dx()/-2),
 		float64(img_bounds.Dy()/-2),
@@ -86,10 +91,22 @@ func (e *Entity) Update(dt float64) {
 	e.DrawOpts.GeoM.Rotate(e.Angle)
 
 	e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
+
+	if e.OnCollision != nil {
+		e.Body.EachArbiter(func(arbiter *cp.Arbiter) {
+			b1, b2 := arbiter.Bodies()
+			if b1.UserData != nil && b1 != e.Body {
+				e.OnCollision(e, b1.UserData.(*Entity))
+			}
+			if b2.UserData != nil && b2 != e.Body {
+				e.OnCollision(e, b2.UserData.(*Entity))
+			}
+		})
+	}
 }
 
 func (e *Entity) Render(screen *ebiten.Image) {
-	screen.DrawImage(e.img, e.DrawOpts)
+	screen.DrawImage(e.Img, e.DrawOpts)
 }
 
 func (e *Entity) RemoveFromGame() {

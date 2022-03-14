@@ -48,19 +48,21 @@ type Player struct {
 
 	game *Game
 
-	name  string
+	Name  string
 	color imagecolor.Color
 
-	hp            int32
+	HP            int32
 	is_invincible bool
 
-	dx, dy float64
-	tx, ty float64
+	Dx, Dy float64
+	Tx, Ty float64
 
-	speed float64
+	Speed float64
 
-	cooldown       int64
+	CoolDown       int64
 	last_fire_time int64
+
+	stunned_until int64
 
 	messages chan UpdateMessage
 }
@@ -70,8 +72,8 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 	player := &Player{
 		game: g,
 
-		name: name,
-		hp:   DEFAULT_HP,
+		Name: name,
+		HP:   DEFAULT_HP,
 
 		Entity: *NewEntity(
 			g,
@@ -82,9 +84,9 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 
 			_PLAYER_IMAGE,
 		),
-		speed: 1000,
+		Speed: 1000,
 
-		cooldown:       300,
+		CoolDown:       300,
 		last_fire_time: time.Now().UnixMilli(),
 
 		messages: make(chan UpdateMessage, 1024),
@@ -99,11 +101,11 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 	player.RenderFn = func(e *Entity, screen *ebiten.Image) {
 		e.Render(screen)
 
-		info_hp := strings.Repeat("■", int(player.hp))
-		l := float64(len(player.name))
+		info_hp := strings.Repeat("■", int(player.HP))
+		l := float64(len(player.Name))
 		ll := float64(len(info_hp))
 
-		text.Draw(screen, player.name, mplusNormalFont, int(player.X-l*4), int(player.Y-62), player.color)
+		text.Draw(screen, player.Name, mplusNormalFont, int(player.X-l*4), int(player.Y-62), player.color)
 		text.Draw(screen, info_hp, mplusNormalFont, int(player.X-ll*2.5), int(player.Y-42), player.color)
 	}
 
@@ -112,12 +114,13 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 			return
 		}
 
-		player.hp -= dmg
+		player.HP -= dmg
 
-		if player.hp <= 0 {
+		if player.HP <= 0 {
 			player.Respawn()
 		}
 	}
+	player.Holder = player
 
 	player.SetColor(color)
 
@@ -146,20 +149,34 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 }
 
 func (player *Player) Respawn() {
-	player.hp = DEFAULT_HP
+	player.HP = DEFAULT_HP
 
-	player.X = 100 + rand.Float64()*(ScreenWidth-200)
-	player.Y = 100 + rand.Float64()*(ScreenHeight-200)
-	player.Body.SetPosition(cp.Vector{player.X, player.Y})
+	l := len(player.game.PlayerSpawnPoints)
+	if l > 0 {
+		point := player.game.PlayerSpawnPoints[rand.Int()%l]
+		player.Body.SetPosition(point)
+		player.X, player.Y = point.X, point.Y
+	} else {
+		player.X = 100 + rand.Float64()*(ScreenWidth-200)
+		player.Y = 100 + rand.Float64()*(ScreenHeight-200)
+		player.Body.SetPosition(cp.Vector{player.X, player.Y})
+	}
 
+	player.Body.SetVelocityVector(cp.Vector{})
+
+	player.StunFor(INVINCIBILITY_TIME * 9 / 10)
 	player.SetInvincible(INVINCIBILITY_TIME)
 }
 
 func (p *Player) UpdateInputs(dt float64) {
 	p.readMessages()
 
-	tx := p.dx * dt * p.speed
-	ty := p.dy * dt * p.speed
+	if p.IsStunned() {
+		return
+	}
+
+	tx := p.Dx * dt * p.Speed
+	ty := p.Dy * dt * p.Speed
 
 	impulse := cp.Vector{tx, ty}
 	p.Body.ApplyImpulseAtLocalPoint(impulse, cp.Vector{})
@@ -170,10 +187,10 @@ func (p *Player) UpdateInputs(dt float64) {
 }
 
 func (p *Player) Update(dt float64) {
-	if p.tx != 0 || p.ty != 0 {
-		p.Angle = math.Atan2(float64(p.ty), float64(p.tx)) + math.Pi/2
-	} else if p.dx != 0 || p.dy != 0 {
-		p.Angle = math.Atan2(float64(p.dy), float64(p.dx)) + math.Pi/2
+	if p.Tx != 0 || p.Ty != 0 {
+		p.Angle = math.Atan2(float64(p.Ty), float64(p.Tx)) + math.Pi/2
+	} else if p.Dx != 0 || p.Dy != 0 {
+		p.Angle = math.Atan2(float64(p.Dy), float64(p.Dx)) + math.Pi/2
 	}
 
 	p.Entity.Update(dt)
@@ -200,7 +217,7 @@ func (p *Player) SetInvincible(duration int64) {
 	p.DrawOpts.ColorM.Scale(0.4, 0.4, 0.4, 1)
 
 	iteration := 1
-	interval_id := p.timeholder.SetInterval(func() {
+	interval_id := p.TimeManager.SetInterval(func() {
 		iteration++
 		if iteration%2 == 0 {
 			p.DrawOpts.ColorM.Scale(0.4, 0.4, 0.4, 1)
@@ -209,8 +226,8 @@ func (p *Player) SetInvincible(duration int64) {
 		}
 	}, 300)
 
-	p.timeholder.SetTimeout(func() {
-		p.timeholder.ClearInterval(interval_id)
+	p.TimeManager.SetTimeout(func() {
+		p.TimeManager.ClearInterval(interval_id)
 		p.Shape.SetSensor(false)
 		p.is_invincible = false
 		p.SetColor(precolor)
@@ -229,15 +246,15 @@ func (p *Player) readMessages() {
 }
 
 func (p *Player) applyUpdateMessage(um *UpdateMessage) {
-	p.dx = float64(um.Dx) / 50
-	p.dy = float64(um.Dy) / 50
-	p.tx = float64(um.Tx) / 50
-	p.ty = float64(um.Ty) / 50
+	p.Dx = float64(um.Dx) / 50
+	p.Dy = float64(um.Dy) / 50
+	p.Tx = float64(um.Tx) / 50
+	p.Ty = float64(um.Ty) / 50
 }
 
 func (p *Player) is_fire_expected() bool {
-	cooldownExpired := (time.Now().UnixMilli() - p.last_fire_time) > p.cooldown
-	triggerDown := (p.tx*p.tx + p.ty*p.ty) > 0.7
+	cooldownExpired := (time.Now().UnixMilli() - p.last_fire_time) > p.CoolDown
+	triggerDown := (p.Tx*p.Tx + p.Ty*p.Ty) > 0.7
 	return cooldownExpired && triggerDown
 }
 
@@ -252,11 +269,18 @@ func (p *Player) fire() {
 
 	p.game.AddEntity(&b.Entity)
 
-	dir := cp.Vector{p.tx, p.ty}.Normalize()
+	dir := cp.Vector{p.Tx, p.Ty}.Normalize()
 
 	b.Body.SetVelocityVector(dir.Mult(1000.).Add(p.Body.Velocity().Mult(1.5)))
 }
 
 func on_bullet_dmg_dealt(b *Bullet, to *Entity) {
 	b.Entity.RemoveFromGame()
+}
+
+func (player *Player) StunFor(ms int64) {
+	player.stunned_until = TimeNow() + ms
+}
+func (player *Player) IsStunned() bool {
+	return TimeNow() < player.stunned_until
 }

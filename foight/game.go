@@ -4,6 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
 	"log"
+	"math/rand"
 
 	"image/color"
 )
@@ -20,17 +21,30 @@ type Game struct {
 	ItemSpawnPoints   []cp.Vector
 
 	Space *cp.Space
+
+	TimerManager *TimeHolder
 }
 
 func NewGame() *Game {
 	game := &Game{
-		Space: cp.NewSpace(),
+		Space:        cp.NewSpace(),
+		TimerManager: &TimeHolder{},
 	}
 
 	game.Space.Iterations = 10
 	game.Space.SetDamping(0.1)
 
 	addWalls(game.Space)
+
+	game.TimerManager.SetInterval(func() {
+		l := len(game.PlayerSpawnPoints)
+		if l > 0 {
+			point := game.PlayerSpawnPoints[rand.Int()%l]
+			item := NewItemHeal(point)
+			item.Init(game)
+			item.Lifespan = 20000
+		}
+	}, 10000)
 
 	return game
 }
@@ -57,6 +71,8 @@ func (g *Game) Layout(outWidth, outHeight int) (width, height int) {
 
 func (g *Game) Update() error {
 	dt := 1. / 60. // Really disliking that
+
+	g.TimerManager.Update()
 
 	for _, e := range g.Entities {
 		if e.PreUpdateFn != nil {
@@ -104,6 +120,9 @@ func (g *Game) indexOfEntity(e *Entity) int32 {
 
 func (g *Game) AddEntity(e *Entity) int32 {
 	var idx int32 = -1
+	if e.Game != g {
+		e.Game = g
+	}
 
 	g.Entities = append(g.Entities, e)
 
@@ -120,6 +139,7 @@ func (g *Game) RemoveEntity(e *Entity) {
 	if idx == -1 {
 		return
 	}
+	e.Holder = nil
 
 	if e.Body != nil {
 		g.Space.RemoveBody(e.Body)
