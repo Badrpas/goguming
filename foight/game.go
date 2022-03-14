@@ -46,6 +46,29 @@ func NewGame() *Game {
 		}
 	}, 10000)
 
+	handler := game.Space.NewCollisionHandler(1, 1)
+	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
+		b1, b2 := arb.Bodies()
+		var e1, e2 *Entity
+		if b1.UserData != nil {
+			e1, _ = b1.UserData.(*Entity)
+		}
+		if b2.UserData != nil {
+			e2, _ = b2.UserData.(*Entity)
+		}
+
+		if e1 != nil && e2 != nil {
+			if e1.OnCollision != nil {
+				e1.OnCollision(e1, e2)
+			}
+			if e2.OnCollision != nil {
+				e2.OnCollision(e2, e1)
+			}
+		}
+
+		return true
+	}
+
 	return game
 }
 

@@ -91,18 +91,6 @@ func (e *Entity) Update(dt float64) {
 	e.DrawOpts.GeoM.Rotate(e.Angle)
 
 	e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
-
-	if e.OnCollision != nil {
-		e.Body.EachArbiter(func(arbiter *cp.Arbiter) {
-			b1, b2 := arbiter.Bodies()
-			if b1.UserData != nil && b1 != e.Body {
-				e.OnCollision(e, b1.UserData.(*Entity))
-			}
-			if b2.UserData != nil && b2 != e.Body {
-				e.OnCollision(e, b2.UserData.(*Entity))
-			}
-		})
-	}
 }
 
 func (e *Entity) Render(screen *ebiten.Image) {

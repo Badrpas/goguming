@@ -16,12 +16,13 @@ func (i *Item) Init(game *Game) int32 {
 
 	i.Body = space.AddBody(cp.NewBody(cp.INFINITY, cp.INFINITY))
 	i.Body.SetPosition(cp.Vector{i.X, i.Y})
-	i.Body.SetType(cp.BODY_STATIC)
+	//i.Body.SetType(cp.BODY_STATIC)
 
 	i.Shape = space.AddShape(cp.NewBox(i.Body, float64(i.Img.Bounds().Dx()), float64(i.Img.Bounds().Dy()), 0))
 	i.Shape.SetElasticity(1)
 	i.Shape.SetFriction(1)
 	i.Shape.SetSensor(true)
+	i.Shape.SetCollisionType(1)
 
 	i.Body.UserData = i.Entity
 	i.OnCollision = func(e, other *Entity) {
