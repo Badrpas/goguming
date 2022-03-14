@@ -1,8 +1,8 @@
 package foight
 
 type UpdateMessage struct {
-	dx, dy int8
-	tx, ty int8
+	Dx, Dy int8
+	Tx, Ty int8
 }
 
 func decodeUpdateMessage(data []byte) UpdateMessage {
@@ -12,8 +12,8 @@ func decodeUpdateMessage(data []byte) UpdateMessage {
 }
 
 func (um *UpdateMessage) decode(data []byte) {
-	um.dx = int8(uint8(data[0]) - 50)
-	um.dy = int8(uint8(data[1]) - 50)
-	um.tx = int8(uint8(data[2]) - 50)
-	um.ty = int8(uint8(data[3]) - 50)
+	um.Dx = int8(uint8(data[0]) - 50)
+	um.Dy = int8(uint8(data[1]) - 50)
+	um.Tx = int8(uint8(data[2]) - 50)
+	um.Ty = int8(uint8(data[3]) - 50)
 }

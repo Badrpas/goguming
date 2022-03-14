@@ -7,27 +7,27 @@ import (
 )
 
 type Entity struct {
-	id   uint32
-	game *Game
+	ID   uint32
+	Game *Game
 
-	x, y  float64
-	angle float64
+	X, Y  float64
+	Angle float64
 
-	body  *cp.Body
-	shape *cp.Shape
+	Body  *cp.Body
+	Shape *cp.Shape
 
-	img          *ebiten.Image
-	draw_options *ebiten.DrawImageOptions
+	img      *ebiten.Image
+	DrawOpts *ebiten.DrawImageOptions
 
-	created_at, lifespan int64
+	CreatedAt, Lifespan int64
 
 	timeholder *TimeHolder
 
-	preupdate func(e *Entity, dt float64)
-	update    func(e *Entity, dt float64)
-	render    func(e *Entity, screen *ebiten.Image)
+	PreUpdateFn func(e *Entity, dt float64)
+	UpdateFn    func(e *Entity, dt float64)
+	RenderFn    func(e *Entity, screen *ebiten.Image)
 
-	on_dmg_received func(from *Entity, amount int32)
+	OnDmgReceived func(from *Entity, amount int32)
 }
 
 var id_counter uint32 = 0
@@ -59,36 +59,39 @@ func NewEntity(
 	}
 
 }
+func (e *Entity) SetRenderFn(fn func(e *Entity, screen *ebiten.Image)) {
+	e.RenderFn = fn
+}
 
 func (e *Entity) Update(dt float64) {
 	e.timeholder.Update()
 
-	if e.lifespan > 0 && (TimeNow()-e.created_at) >= e.lifespan {
-		e.game.RemoveEntity(e)
+	if e.Lifespan > 0 && (TimeNow()-e.CreatedAt) >= e.Lifespan {
+		e.Game.RemoveEntity(e)
 		return
 	}
 
-	position := e.body.Position()
-	e.x = position.X
-	e.y = position.Y
+	position := e.Body.Position()
+	e.X = position.X
+	e.Y = position.Y
 
-	e.draw_options.GeoM.Reset()
+	e.DrawOpts.GeoM.Reset()
 
 	img_bounds := e.img.Bounds()
-	e.draw_options.GeoM.Translate(
+	e.DrawOpts.GeoM.Translate(
 		float64(img_bounds.Dx()/-2),
 		float64(img_bounds.Dy()/-2),
 	)
 
-	e.draw_options.GeoM.Rotate(e.angle)
+	e.DrawOpts.GeoM.Rotate(e.Angle)
 
-	e.draw_options.GeoM.Translate(float64(e.x), float64(e.y))
+	e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
 }
 
 func (e *Entity) Render(screen *ebiten.Image) {
-	screen.DrawImage(e.img, e.draw_options)
+	screen.DrawImage(e.img, e.DrawOpts)
 }
 
 func (e *Entity) RemoveFromGame() {
-	e.game.RemoveEntity(e)
+	e.Game.RemoveEntity(e)
 }

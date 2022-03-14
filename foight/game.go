@@ -14,20 +14,20 @@ const (
 )
 
 type Game struct {
-	entities []*Entity
+	Entities []*Entity
 
-	space *cp.Space
+	Space *cp.Space
 }
 
 func NewGame() *Game {
 	game := &Game{
-		space: cp.NewSpace(),
+		Space: cp.NewSpace(),
 	}
 
-	game.space.Iterations = 10
-	game.space.SetDamping(0.1)
+	game.Space.Iterations = 10
+	game.Space.SetDamping(0.1)
 
-	addWalls(game.space)
+	addWalls(game.Space)
 
 	return game
 }
@@ -55,21 +55,21 @@ func (g *Game) Layout(outWidth, outHeight int) (width, height int) {
 func (g *Game) Update() error {
 	dt := 1. / 60. // Really disliking that
 
-	for _, e := range g.entities {
-		if e.preupdate != nil {
-			e.preupdate(e, dt)
+	for _, e := range g.Entities {
+		if e.PreUpdateFn != nil {
+			e.PreUpdateFn(e, dt)
 		}
 	}
 
-	g.space.Step(dt)
+	g.Space.Step(dt)
 
-	for _, e := range g.entities {
+	for _, e := range g.Entities {
 		if e == nil {
 			continue
 		}
 
-		if e.update != nil {
-			e.update(e, dt)
+		if e.UpdateFn != nil {
+			e.UpdateFn(e, dt)
 		} else {
 			e.Update(dt)
 		}
@@ -81,9 +81,9 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.Black)
 
-	for _, e := range g.entities {
-		if e.render != nil {
-			e.render(e, screen)
+	for _, e := range g.Entities {
+		if e.RenderFn != nil {
+			e.RenderFn(e, screen)
 		} else {
 			e.Render(screen)
 		}
@@ -91,8 +91,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) indexOfEntity(e *Entity) int32 {
-	for k, v := range g.entities {
-		if e == v || e.id == v.id { // Should not be dependent on the id
+	for k, v := range g.Entities {
+		if e == v || e.ID == v.ID { // Should not be dependent on the id
 			return int32(k)
 		}
 	}
@@ -102,7 +102,7 @@ func (g *Game) indexOfEntity(e *Entity) int32 {
 func (g *Game) AddEntity(e *Entity) int32 {
 	var idx int32 = -1
 
-	g.entities = append(g.entities, e)
+	g.Entities = append(g.Entities, e)
 
 	idx = g.indexOfEntity(e)
 	if idx < 0 {
@@ -118,12 +118,12 @@ func (g *Game) RemoveEntity(e *Entity) {
 		return
 	}
 
-	if e.body != nil {
-		g.space.RemoveBody(e.body)
+	if e.Body != nil {
+		g.Space.RemoveBody(e.Body)
 	}
-	if e.shape != nil {
-		g.space.RemoveShape(e.shape)
+	if e.Shape != nil {
+		g.Space.RemoveShape(e.Shape)
 	}
 
-	g.entities = append(g.entities[:idx], g.entities[idx+1:]...)
+	g.Entities = append(g.Entities[:idx], g.Entities[idx+1:]...)
 }

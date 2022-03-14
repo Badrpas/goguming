@@ -6,14 +6,14 @@ import (
 	"github.com/jakecoffman/cp"
 )
 
-var img_bullet *ebiten.Image
+var _BULLET_IMG *ebiten.Image
 var img_w_bullet, img_h_bullet float64
 
 func init() {
-	img_bullet = imagestore.Images["boolit.png"]
+	_BULLET_IMG = imagestore.Images["boolit.png"]
 
-	img_w_bullet = float64(img_bullet.Bounds().Dx())
-	img_h_bullet = float64(img_bullet.Bounds().Dy())
+	img_w_bullet = float64(_BULLET_IMG.Bounds().Dx())
+	img_h_bullet = float64(_BULLET_IMG.Bounds().Dy())
 }
 
 type Bullet struct {
@@ -24,8 +24,8 @@ type Bullet struct {
 	on_dmg_dealt func(b *Bullet, to *Entity)
 }
 
-func (g *Game) NewBullet(x, y float64) *Bullet {
-	space := g.space
+func NewBullet(g *Game, x, y float64) *Bullet {
+	space := g.Space
 
 	body := space.AddBody(cp.NewBody(10, 10))
 	body.SetPosition(cp.Vector{x, y})
@@ -41,7 +41,7 @@ func (g *Game) NewBullet(x, y float64) *Bullet {
 			x, y,
 			body,
 			shape,
-			img_bullet,
+			_BULLET_IMG,
 		),
 
 		dmg: 1,
@@ -49,7 +49,7 @@ func (g *Game) NewBullet(x, y float64) *Bullet {
 
 	body.UserData = &b.Entity
 
-	b.Entity.update = func(e *Entity, dt float64) {
+	b.Entity.UpdateFn = func(e *Entity, dt float64) {
 		b.Update(dt)
 	}
 
@@ -60,7 +60,7 @@ func (b *Bullet) Update(dt float64) {
 	e := b.Entity
 	e.Update(dt)
 
-	e.body.EachArbiter(func(arbiter *cp.Arbiter) {
+	e.Body.EachArbiter(func(arbiter *cp.Arbiter) {
 		b1, b2 := arbiter.Bodies()
 		b.applyDamageTo(b1.UserData)
 		b.applyDamageTo(b2.UserData)
@@ -80,8 +80,8 @@ func (b *Bullet) applyDamageTo(i interface{}) {
 		return
 	}
 
-	if entity.on_dmg_received != nil {
-		entity.on_dmg_received(&b.Entity, b.dmg)
+	if entity.OnDmgReceived != nil {
+		entity.OnDmgReceived(&b.Entity, b.dmg)
 
 		if b.on_dmg_dealt != nil {
 			b.on_dmg_dealt(b, entity)

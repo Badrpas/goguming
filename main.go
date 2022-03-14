@@ -1,6 +1,7 @@
 package main
 
 import (
+	levelmap "game/foight/map"
 	"github.com/hajimehoshi/ebiten/v2"
 
 	"log"
@@ -11,6 +12,12 @@ import (
 func main() {
 
 	g := foight.NewGame()
+	//err := levelmap.LoadToGameLdtk("levels/hola.ldtk", g)
+	err := levelmap.LoadToGameTiled("levels/lul.tmx", g)
+	if err != nil {
+		log.Println("Couldn't load level")
+		return
+	}
 
 	go foight.RunApi(g)
 

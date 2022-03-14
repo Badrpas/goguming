@@ -64,7 +64,7 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("New player connected: [%s] color: %X", name, color)
 
-		player := game.AddPlayer(name, color)
+		player := NewPlayer(game, name, color)
 
 		for {
 			_, message, err := c.ReadMessage()
