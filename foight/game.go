@@ -5,6 +5,7 @@ import (
 	"github.com/jakecoffman/cp"
 	"log"
 	"math/rand"
+	"time"
 
 	"image/color"
 )
@@ -13,6 +14,10 @@ const (
 	ScreenWidth  = 1600
 	ScreenHeight = 1000
 )
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
 
 type Game struct {
 	Entities []*Entity
