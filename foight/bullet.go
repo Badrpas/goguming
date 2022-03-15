@@ -4,6 +4,7 @@ import (
 	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
+	"log"
 )
 
 var _BULLET_IMG *ebiten.Image
@@ -17,7 +18,7 @@ func init() {
 }
 
 type Bullet struct {
-	Entity
+	*Entity
 
 	dmg int32
 
@@ -36,7 +37,7 @@ func NewBullet(g *Game, x, y float64) *Bullet {
 	shape.SetCollisionType(1)
 
 	b := &Bullet{
-		Entity: *NewEntity(
+		Entity: NewEntity(
 			g,
 			x, y,
 			body,
@@ -47,10 +48,19 @@ func NewBullet(g *Game, x, y float64) *Bullet {
 		dmg: 1,
 	}
 
-	body.UserData = &b.Entity
+	body.UserData = b.Entity
 
 	b.Entity.UpdateFn = func(e *Entity, dt float64) {
 		b.Update(dt)
+	}
+
+	b.OnCollision = func(e, other *Entity) {
+		b, ok := e.Holder.(*Bullet)
+		if !ok {
+			log.Fatalln("Received non bullet entity")
+			return
+		}
+		b.applyDamageTo(other)
 	}
 
 	return b
@@ -59,29 +69,15 @@ func NewBullet(g *Game, x, y float64) *Bullet {
 func (b *Bullet) Update(dt float64) {
 	e := b.Entity
 	e.Update(dt)
-
-	e.Body.EachArbiter(func(arbiter *cp.Arbiter) {
-		b1, b2 := arbiter.Bodies()
-		b.applyDamageTo(b1.UserData)
-		b.applyDamageTo(b2.UserData)
-	})
 }
 
-func (b *Bullet) applyDamageTo(i interface{}) {
-	var entity *Entity
-
-	if e, ok := i.(*Entity); ok {
-		entity = e
-	} else {
-		return
-	}
-
-	if entity == &b.Entity {
+func (b *Bullet) applyDamageTo(entity *Entity) {
+	if entity == b.Entity {
 		return
 	}
 
 	if entity.OnDmgReceived != nil {
-		entity.OnDmgReceived(&b.Entity, b.dmg)
+		entity.OnDmgReceived(b.Entity, b.dmg)
 
 		if b.on_dmg_dealt != nil {
 			b.on_dmg_dealt(b, entity)

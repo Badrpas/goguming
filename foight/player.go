@@ -44,7 +44,7 @@ func init() {
 }
 
 type Player struct {
-	Entity
+	*Entity
 
 	game *Game
 
@@ -62,6 +62,8 @@ type Player struct {
 	CoolDown       int64
 	last_fire_time int64
 
+	Items []*Item
+
 	stunned_until int64
 
 	messages chan UpdateMessage
@@ -75,7 +77,7 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 		Name: name,
 		HP:   DEFAULT_HP,
 
-		Entity: *NewEntity(
+		Entity: NewEntity(
 			g,
 			-200,
 			-200,
@@ -93,7 +95,9 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 	}
 
 	player.PreUpdateFn = func(e *Entity, dt float64) {
+		player.UpdateItems()
 		player.UpdateInputs(dt)
+		player.Entity.PreUpdate(dt)
 	}
 	player.UpdateFn = func(e *Entity, dt float64) {
 		player.Update(dt)
@@ -120,15 +124,15 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 			player.Respawn()
 		}
 	}
-	player.Holder = player
+	player.Entity.Holder = player
 
 	player.SetColor(color)
 
-	g.AddEntity(&player.Entity)
+	g.AddEntity(player.Entity)
 
 	{ // Physics
 		body := g.Space.AddBody(cp.NewBody(1, 1))
-		body.UserData = &player.Entity
+		body.UserData = player.Entity
 
 		radius := float64(_PLAYER_IMAGE.Bounds().Dx() / 2)
 		shape := g.Space.AddShape(cp.NewCircle(body, radius, cp.Vector{}))
@@ -267,7 +271,7 @@ func (p *Player) fire() {
 	b.Lifespan = 800
 	b.on_dmg_dealt = on_bullet_dmg_dealt
 
-	p.game.AddEntity(&b.Entity)
+	p.game.AddEntity(b.Entity)
 
 	dir := cp.Vector{p.Tx, p.Ty}.Normalize()
 
@@ -283,4 +287,26 @@ func (player *Player) StunFor(ms int64) {
 }
 func (player *Player) IsStunned() bool {
 	return TimeNow() < player.stunned_until
+}
+
+func (player *Player) UpdateItems() {
+	count := len(player.Items)
+	row_length := int(math.Round(math.Sqrt(float64(count))))
+
+	for idx, item := range player.Items {
+		x := idx % row_length
+		y := idx / row_length
+		item.X, item.Y = float64(x), float64(y)
+	}
+}
+
+func (player *Player) AddItem(item *Item) {
+	player.Items = append(player.Items, item)
+}
+func (player *Player) RemoveItem(item *Item) {
+	for idx, x := range player.Items {
+		if x == item {
+			player.Items = append(player.Items[:idx], player.Items[idx+1:]...)
+		}
+	}
 }

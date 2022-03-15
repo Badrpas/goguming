@@ -76,9 +76,9 @@ func initItemSpawner(game *Game) {
 			ctor := ItemConstructors[rand.Int()%len(ItemConstructors)]
 			item := ctor(point)
 			item.Init(game)
-			item.Lifespan = 20000
+			item.Lifespan = 8000
 		}
-	}, 10000)
+	}, 3000)
 }
 
 func addWalls(space *cp.Space) {
@@ -107,8 +107,14 @@ func (g *Game) Update() error {
 	g.TimerManager.Update()
 
 	for _, e := range g.Entities {
+		if e == nil {
+			continue
+		}
+
 		if e.PreUpdateFn != nil {
 			e.PreUpdateFn(e, dt)
+		} else {
+			e.PreUpdate(dt)
 		}
 	}
 
@@ -173,12 +179,7 @@ func (g *Game) RemoveEntity(e *Entity) {
 	}
 	e.Holder = nil
 
-	if e.Body != nil {
-		g.Space.RemoveBody(e.Body)
-	}
-	if e.Shape != nil {
-		g.Space.RemoveShape(e.Shape)
-	}
+	e.RemovePhysics()
 
 	g.Entities = append(g.Entities[:idx], g.Entities[idx+1:]...)
 }

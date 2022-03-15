@@ -70,7 +70,7 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 			_, message, err := c.ReadMessage()
 
 			if err != nil {
-				game.RemoveEntity(&player.Entity)
+				game.RemoveEntity(player.Entity)
 				log.Println("read err:", err)
 				break
 			}

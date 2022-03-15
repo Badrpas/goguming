@@ -13,6 +13,8 @@ type Entity struct {
 	X, Y  float64
 	Angle float64
 
+	Parent *Entity
+
 	Body  *cp.Body
 	Shape *cp.Shape
 
@@ -48,6 +50,7 @@ func NewEntity(
 		id_counter,
 		game,
 		x, y, 0,
+		nil,
 		body,
 		shape,
 		image,
@@ -68,6 +71,16 @@ func (e *Entity) SetRenderFn(fn func(e *Entity, screen *ebiten.Image)) {
 	e.RenderFn = fn
 }
 
+func (e *Entity) PreUpdate(dt float64) {
+	if e.Parent != nil && e.Body != nil {
+		if e.Parent.Body != nil {
+			e.Body.SetPosition(e.Parent.Body.Position().Add(cp.Vector{e.X, e.Y}))
+		} else {
+			e.Body.SetPosition(cp.Vector{e.Parent.X + e.X, e.Parent.Y + e.Y})
+		}
+	}
+}
+
 func (e *Entity) Update(dt float64) {
 	e.TimeManager.Update()
 
@@ -75,10 +88,6 @@ func (e *Entity) Update(dt float64) {
 		e.Game.RemoveEntity(e)
 		return
 	}
-
-	position := e.Body.Position()
-	e.X = position.X
-	e.Y = position.Y
 
 	e.DrawOpts.GeoM.Reset()
 
@@ -90,6 +99,17 @@ func (e *Entity) Update(dt float64) {
 
 	e.DrawOpts.GeoM.Rotate(e.Angle)
 
+	if e.Body == nil {
+		if e.Parent != nil {
+			e.DrawOpts.GeoM.Translate(float64(e.X)+e.Parent.X, float64(e.Y)+e.Parent.Y)
+			return
+		}
+	} else {
+		position := e.Body.Position()
+		e.X = position.X
+		e.Y = position.Y
+	}
+
 	e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
 }
 
@@ -99,4 +119,15 @@ func (e *Entity) Render(screen *ebiten.Image) {
 
 func (e *Entity) RemoveFromGame() {
 	e.Game.RemoveEntity(e)
+}
+
+func (e *Entity) RemovePhysics() {
+	if e.Body != nil {
+		e.Game.Space.RemoveBody(e.Body)
+		e.Body = nil
+	}
+	if e.Shape != nil {
+		e.Game.Space.RemoveShape(e.Shape)
+		e.Shape = nil
+	}
 }

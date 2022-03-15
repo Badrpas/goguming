@@ -58,8 +58,11 @@ func (i *Item) Init(game *Game) int32 {
 		}
 		player, ok := other.Holder.(*Player)
 		if ok {
+			player.AddItem(i)
+			i.Parent = player.Entity
+			i.X, i.Y = 0, 0
 			i.OnPickup(player)
-			game.RemoveEntity(i.Entity)
+			i.RemovePhysics()
 		}
 	}
 
@@ -71,6 +74,7 @@ func NewItemHeal(pos cp.Vector) *Item {
 	item.Img = imagestore.Images["heal.png"]
 	item.OnPickup = func(player *Player) {
 		player.HP += 1
+		player.RemoveItem(item)
 	}
 	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
 	item.DrawOpts.ColorM.Translate(0, 1, 0, 0)
