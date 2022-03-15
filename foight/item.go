@@ -13,6 +13,7 @@ func init() {
 	ItemConstructors = []ItemCtor{
 		NewItemHeal,
 		NewItemSpeed,
+		NewItemCoolDown,
 	}
 }
 
@@ -85,7 +86,24 @@ func NewItemSpeed(pos cp.Vector) *Item {
 		player.Speed += delta
 		player.TimeManager.SetTimeout(func() {
 			player.Speed -= delta
-		}, 3000)
+		}, 6000)
+	}
+
+	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
+	item.DrawOpts.ColorM.Translate(1, 1, 0, 0)
+
+	return item
+}
+
+func NewItemCoolDown(pos cp.Vector) *Item {
+	item := newItem(pos)
+	item.Img = imagestore.Images["cooldown.png"]
+	item.OnPickup = func(player *Player) {
+		delta := player.CoolDown / 2
+		player.CoolDown -= delta
+		player.TimeManager.SetTimeout(func() {
+			player.CoolDown += delta
+		}, 6000)
 	}
 
 	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
