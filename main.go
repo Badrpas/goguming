@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	levelmap "game/foight/map"
 	"github.com/hajimehoshi/ebiten/v2"
 
@@ -9,13 +10,15 @@ import (
 	"game/foight"
 )
 
+var mapname = flag.String("level", "levels/lul.tmx", "Map to run with")
+
 func main() {
 
 	g := foight.NewGame()
 	//err := levelmap.LoadToGameLdtk("levels/hola.ldtk", g)
-	err := levelmap.LoadToGameTiled("levels/lul.tmx", g)
+	err := levelmap.LoadToGameTiled(*mapname, g)
 	if err != nil {
-		log.Println("Couldn't load level")
+		log.Println("Couldn't load level", mapname)
 		return
 	}
 
