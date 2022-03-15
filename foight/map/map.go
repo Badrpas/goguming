@@ -38,13 +38,16 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 	layer := gameMap.Layers[0]
 	tiles := layer.Tiles
 
+	cell_w := float64(gameMap.TileWidth)
+	cell_h := float64(gameMap.TileHeight)
+
 	for idx, tile := range tiles {
 		if tile.Nil {
 			continue
 		}
 
-		x := 16. * float64(idx%(gameMap.Width))
-		y := 16. * float64(idx/(gameMap.Width))
+		x := cell_w * float64(idx%(gameMap.Width))
+		y := cell_h * float64(idx/(gameMap.Width))
 
 		b := foight.NewBlock(x, y)
 		b.Init(game)

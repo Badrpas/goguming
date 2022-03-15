@@ -11,6 +11,19 @@ type Item struct {
 	OnPickup func(player *Player)
 }
 
+func newItem(pos cp.Vector) *Item {
+	return &Item{
+		Entity: NewEntity(
+			nil,
+			pos.X,
+			pos.Y,
+			nil,
+			nil,
+			nil,
+		),
+	}
+}
+
 func (i *Item) Init(game *Game) int32 {
 	space := game.Space
 
@@ -18,7 +31,9 @@ func (i *Item) Init(game *Game) int32 {
 	i.Body.SetPosition(cp.Vector{i.X, i.Y})
 	//i.Body.SetType(cp.BODY_STATIC)
 
-	i.Shape = space.AddShape(cp.NewBox(i.Body, float64(i.Img.Bounds().Dx()), float64(i.Img.Bounds().Dy()), 0))
+	bounds := i.Img.Bounds()
+	box := cp.NewBox(i.Body, float64(bounds.Dx()), float64(bounds.Dy()), 0)
+	i.Shape = space.AddShape(box)
 	i.Shape.SetElasticity(1)
 	i.Shape.SetFriction(1)
 	i.Shape.SetSensor(true)
@@ -37,19 +52,6 @@ func (i *Item) Init(game *Game) int32 {
 	}
 
 	return game.AddEntity(i.Entity)
-}
-
-func newItem(pos cp.Vector) *Item {
-	return &Item{
-		Entity: NewEntity(
-			nil,
-			pos.X,
-			pos.Y,
-			nil,
-			nil,
-			nil,
-		),
-	}
 }
 
 func NewItemHeal(pos cp.Vector) *Item {
