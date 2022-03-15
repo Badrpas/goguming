@@ -40,16 +40,7 @@ func NewGame() *Game {
 	game.Space.SetDamping(0.1)
 
 	addWalls(game.Space)
-
-	game.TimerManager.SetInterval(func() {
-		l := len(game.PlayerSpawnPoints)
-		if l > 0 {
-			point := game.PlayerSpawnPoints[rand.Int()%l]
-			item := NewItemHeal(point)
-			item.Init(game)
-			item.Lifespan = 20000
-		}
-	}, 10000)
+	initItemSpawner(game)
 
 	handler := game.Space.NewCollisionHandler(1, 1)
 	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
@@ -75,6 +66,19 @@ func NewGame() *Game {
 	}
 
 	return game
+}
+
+func initItemSpawner(game *Game) {
+	game.TimerManager.SetInterval(func() {
+		l := len(game.PlayerSpawnPoints)
+		if l > 0 {
+			point := game.PlayerSpawnPoints[rand.Int()%l]
+			ctor := ItemConstructors[rand.Int()%len(ItemConstructors)]
+			item := ctor(point)
+			item.Init(game)
+			item.Lifespan = 20000
+		}
+	}, 10000)
 }
 
 func addWalls(space *cp.Space) {

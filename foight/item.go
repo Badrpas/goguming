@@ -5,6 +5,17 @@ import (
 	"github.com/jakecoffman/cp"
 )
 
+type ItemCtor func(pos cp.Vector) *Item
+
+var ItemConstructors []ItemCtor
+
+func init() {
+	ItemConstructors = []ItemCtor{
+		NewItemHeal,
+		NewItemSpeed,
+	}
+}
+
 type Item struct {
 	*Entity
 
@@ -59,6 +70,22 @@ func NewItemHeal(pos cp.Vector) *Item {
 	item.Img = imagestore.Images["heal.png"]
 	item.OnPickup = func(player *Player) {
 		player.HP += 1
+	}
+	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
+	item.DrawOpts.ColorM.Translate(0, 1, 0, 0)
+
+	return item
+}
+
+func NewItemSpeed(pos cp.Vector) *Item {
+	item := newItem(pos)
+	item.Img = imagestore.Images["speedup.png"]
+	item.OnPickup = func(player *Player) {
+		delta := player.Speed * 0.5
+		player.Speed += delta
+		player.TimeManager.SetTimeout(func() {
+			player.Speed -= delta
+		}, 3000)
 	}
 	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
 	item.DrawOpts.ColorM.Translate(0, 1, 0, 0)
