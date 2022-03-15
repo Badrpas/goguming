@@ -3,7 +3,7 @@ package foight
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
-	"time"
+	imagecolor "image/color"
 )
 
 type Entity struct {
@@ -18,8 +18,11 @@ type Entity struct {
 	Body  *cp.Body
 	Shape *cp.Shape
 
+	color imagecolor.Color
+
 	Img      *ebiten.Image
 	DrawOpts *ebiten.DrawImageOptions
+	Scale    cp.Vector
 
 	CreatedAt, Lifespan int64
 
@@ -33,12 +36,13 @@ type Entity struct {
 
 	OnCollision   func(e, other *Entity)
 	OnDmgReceived func(from *Entity, amount int32)
+
+	OnRemove func(entity *Entity)
 }
 
 var id_counter uint32 = 0
 
 func NewEntity(
-	game *Game,
 	x, y float64,
 	body *cp.Body,
 	shape *cp.Shape,
@@ -48,16 +52,19 @@ func NewEntity(
 
 	return &Entity{
 		id_counter,
-		game,
+		nil,
 		x, y, 0,
 		nil,
 		body,
 		shape,
+		imagecolor.White,
 		image,
 		&ebiten.DrawImageOptions{},
-		time.Now().UnixMilli(),
+		cp.Vector{1, 1},
+		TimeNow(),
 		-1,
 		&TimeHolder{},
+		nil,
 		nil,
 		nil,
 		nil,
@@ -96,6 +103,7 @@ func (e *Entity) Update(dt float64) {
 		float64(img_bounds.Dx()/-2),
 		float64(img_bounds.Dy()/-2),
 	)
+	e.DrawOpts.GeoM.Scale(e.Scale.X, e.Scale.Y)
 
 	e.DrawOpts.GeoM.Rotate(e.Angle)
 
@@ -115,6 +123,22 @@ func (e *Entity) Update(dt float64) {
 
 func (e *Entity) Render(screen *ebiten.Image) {
 	screen.DrawImage(e.Img, e.DrawOpts)
+}
+
+func (e *Entity) SetColor(color imagecolor.Color) {
+	if color == nil {
+		return
+	}
+	e.color = color
+
+	e.DrawOpts.ColorM.Scale(0, 0, 0, 1)
+
+	rb, gb, bb, _ := color.RGBA()
+	r := float64(rb) / 0xFFFF
+	g := float64(gb) / 0xFFFF
+	b := float64(bb) / 0xFFFF
+
+	e.DrawOpts.ColorM.Translate(r, g, b, 0)
 }
 
 func (e *Entity) RemoveFromGame() {

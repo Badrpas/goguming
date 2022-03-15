@@ -28,6 +28,8 @@ type Game struct {
 	Space *cp.Space
 
 	TimerManager *TimeHolder
+
+	queued_jobs []func()
 }
 
 func NewGame() *Game {
@@ -66,6 +68,10 @@ func NewGame() *Game {
 	}
 
 	return game
+}
+
+func (g *Game) QueueJob(job func()) {
+	g.queued_jobs = append(g.queued_jobs, job)
 }
 
 func initItemSpawner(game *Game) {
@@ -132,6 +138,11 @@ func (g *Game) Update() error {
 		}
 	}
 
+	for _, job := range g.queued_jobs {
+		job()
+	}
+	g.queued_jobs = nil
+
 	return nil
 }
 
@@ -149,7 +160,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) indexOfEntity(e *Entity) int32 {
 	for k, v := range g.Entities {
-		if e == v || e.ID == v.ID { // Should not be dependent on the id
+		if e == v /*|| e.ID == v.ID*/ { // Should not be dependent on the id
 			return int32(k)
 		}
 	}
@@ -182,4 +193,10 @@ func (g *Game) RemoveEntity(e *Entity) {
 	e.RemovePhysics()
 
 	g.Entities = append(g.Entities[:idx], g.Entities[idx+1:]...)
+
+	if e.OnRemove != nil {
+		e.OnRemove(e)
+	}
+
+	e.Game = nil
 }

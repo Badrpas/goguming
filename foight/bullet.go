@@ -38,7 +38,6 @@ func NewBullet(g *Game, x, y float64) *Bullet {
 
 	b := &Bullet{
 		Entity: NewEntity(
-			g,
 			x, y,
 			body,
 			shape,

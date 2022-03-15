@@ -12,7 +12,6 @@ type Block struct {
 func NewBlock(x, y float64) *Block {
 	block := &Block{
 		Entity: NewEntity(
-			nil,
 			x, y,
 			nil,
 			nil,

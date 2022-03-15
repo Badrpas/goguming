@@ -46,10 +46,7 @@ func init() {
 type Player struct {
 	*Entity
 
-	game *Game
-
-	Name  string
-	color imagecolor.Color
+	Name string
 
 	HP            int32
 	is_invincible bool
@@ -62,7 +59,7 @@ type Player struct {
 	CoolDown       int64
 	last_fire_time int64
 
-	Items []*Item
+	Effects []*Effect
 
 	stunned_until int64
 
@@ -72,13 +69,11 @@ type Player struct {
 func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 
 	player := &Player{
-		game: g,
 
 		Name: name,
 		HP:   DEFAULT_HP,
 
 		Entity: NewEntity(
-			g,
 			-200,
 			-200,
 			nil,
@@ -94,8 +89,10 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 		messages: make(chan UpdateMessage, 1024),
 	}
 
+	player.Game = g
+
 	player.PreUpdateFn = func(e *Entity, dt float64) {
-		player.UpdateItems()
+		player.UpdateEffects(dt)
 		player.UpdateInputs(dt)
 		player.Entity.PreUpdate(dt)
 	}
@@ -155,9 +152,9 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 func (player *Player) Respawn() {
 	player.HP = DEFAULT_HP
 
-	l := len(player.game.PlayerSpawnPoints)
+	l := len(player.Game.PlayerSpawnPoints)
 	if l > 0 {
-		point := player.game.PlayerSpawnPoints[rand.Int()%l]
+		point := player.Game.PlayerSpawnPoints[rand.Int()%l]
 		player.Body.SetPosition(point)
 		player.X, player.Y = point.X, point.Y
 	} else {
@@ -198,19 +195,6 @@ func (p *Player) Update(dt float64) {
 	}
 
 	p.Entity.Update(dt)
-}
-
-func (p *Player) SetColor(color imagecolor.Color) {
-	p.color = color
-
-	p.DrawOpts.ColorM.Scale(0, 0, 0, 1)
-
-	rb, gb, bb, _ := color.RGBA()
-	r := float64(rb) / 0xFFFF
-	g := float64(gb) / 0xFFFF
-	b := float64(bb) / 0xFFFF
-
-	p.DrawOpts.ColorM.Translate(r, g, b, 0)
 }
 
 func (p *Player) SetInvincible(duration int64) {
@@ -265,13 +249,13 @@ func (p *Player) is_fire_expected() bool {
 func (p *Player) fire() {
 	p.last_fire_time = time.Now().UnixMilli()
 
-	b := NewBullet(p.game, p.X, p.Y)
+	b := NewBullet(p.Game, p.X, p.Y)
 	b.Shape.Filter.Group = p.Shape.Filter.Group
 	b.DrawOpts.ColorM = p.DrawOpts.ColorM
 	b.Lifespan = 800
 	b.on_dmg_dealt = on_bullet_dmg_dealt
 
-	p.game.AddEntity(b.Entity)
+	p.Game.AddEntity(b.Entity)
 
 	dir := cp.Vector{p.Tx, p.Ty}.Normalize()
 
@@ -289,24 +273,44 @@ func (player *Player) IsStunned() bool {
 	return TimeNow() < player.stunned_until
 }
 
-func (player *Player) UpdateItems() {
-	count := len(player.Items)
+func (player *Player) UpdateEffects(dt float64) {
+	count := len(player.Effects)
 	row_length := int(math.Round(math.Sqrt(float64(count))))
 
-	for idx, item := range player.Items {
+	for idx, effect := range player.Effects {
+		effect.Update(dt)
+
 		x := idx % row_length
 		y := idx / row_length
-		item.X, item.Y = float64(x), float64(y)
+		effect.X, effect.Y = float64(x-row_length/2)*16, float64(y-row_length/2)*16
 	}
 }
 
-func (player *Player) AddItem(item *Item) {
-	player.Items = append(player.Items, item)
+func (player *Player) AddEffect(effect *Effect) {
+	player.Effects = append(player.Effects, effect)
+
+	effect.Parent = player.Entity
+
+	if effect.Game != player.Game {
+		player.Game.AddEntity(effect.Entity)
+	}
 }
-func (player *Player) RemoveItem(item *Item) {
-	for idx, x := range player.Items {
-		if x == item {
-			player.Items = append(player.Items[:idx], player.Items[idx+1:]...)
+
+func (player *Player) RemoveEffect(effect *Effect) {
+	if effect.OnCease != nil {
+		effect.OnCease(effect)
+	}
+
+	for idx, x := range player.Effects {
+		if x == effect {
+			player.Effects = append(player.Effects[:idx], player.Effects[idx+1:]...)
+			break
 		}
 	}
+
+	if effect.Game != nil {
+		effect.RemoveFromGame()
+	}
+	effect.Target = nil
+	effect.Data = nil
 }

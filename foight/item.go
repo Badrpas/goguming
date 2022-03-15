@@ -3,6 +3,8 @@ package foight
 import (
 	imagestore "game/img"
 	"github.com/jakecoffman/cp"
+	imagecolor "image/color"
+	"log"
 )
 
 type ItemCtor func(pos cp.Vector) *Item
@@ -26,7 +28,6 @@ type Item struct {
 func newItem(pos cp.Vector) *Item {
 	return &Item{
 		Entity: NewEntity(
-			nil,
 			pos.X,
 			pos.Y,
 			nil,
@@ -56,17 +57,30 @@ func (i *Item) Init(game *Game) int32 {
 		if i.OnPickup == nil {
 			return
 		}
+
 		player, ok := other.Holder.(*Player)
 		if ok {
-			player.AddItem(i)
-			i.Parent = player.Entity
-			i.X, i.Y = 0, 0
 			i.OnPickup(player)
-			i.RemovePhysics()
+			game.RemoveEntity(i.Entity)
 		}
 	}
 
 	return game.AddEntity(i.Entity)
+}
+
+func NewItemWithEffect(pos cp.Vector, imgname string, color imagecolor.Color, effect *Effect) *Item {
+	if effect == nil {
+		log.Fatalln("nil instead of Effect")
+	}
+	item := newItem(pos)
+	item.Img = imagestore.Images[imgname]
+	item.SetColor(color)
+
+	item.OnPickup = func(player *Player) {
+		effect.ApplyTo(player)
+	}
+
+	return item
 }
 
 func NewItemHeal(pos cp.Vector) *Item {
@@ -74,7 +88,6 @@ func NewItemHeal(pos cp.Vector) *Item {
 	item.Img = imagestore.Images["heal.png"]
 	item.OnPickup = func(player *Player) {
 		player.HP += 1
-		player.RemoveItem(item)
 	}
 	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
 	item.DrawOpts.ColorM.Translate(0, 1, 0, 0)
@@ -82,36 +95,65 @@ func NewItemHeal(pos cp.Vector) *Item {
 	return item
 }
 
-func NewItemSpeed(pos cp.Vector) *Item {
-	item := newItem(pos)
-	item.Img = imagestore.Images["speedup.png"]
-	item.OnPickup = func(player *Player) {
-		delta := player.Speed * 0.8
-		player.Speed += delta
-		player.TimeManager.SetTimeout(func() {
-			player.Speed -= delta
-		}, 6000)
+var Effects map[string]*Effect
+
+func init() {
+	Effects = map[string]*Effect{
+
+		"Speed": {
+			Entity: &Entity{
+				Img:      imagestore.Images["speedup.png"],
+				Lifespan: 6000,
+				Scale:    cp.Vector{0.5, 0.5},
+				color:    imagecolor.RGBA{255, 255, 0, 1},
+			},
+			OnApply: func(e *Effect) {
+				player := e.Target
+				delta := player.Speed * 0.8
+				player.Speed += delta
+
+				e.Data = delta
+			},
+			OnCease: func(e *Effect) {
+				e.Target.Speed -= e.Data.(float64)
+			},
+		},
+
+		"CoolDown": {
+			Entity: &Entity{
+				Img:      imagestore.Images["cooldown.png"],
+				Lifespan: 6000,
+				Scale:    cp.Vector{0.5, 0.5},
+				color:    imagecolor.RGBA{0, 55, 255, 1},
+			},
+			OnApply: func(e *Effect) {
+				player := e.Target
+				delta := player.CoolDown / 2
+				player.CoolDown -= delta
+
+				e.Data = delta
+			},
+			OnCease: func(e *Effect) {
+				e.Target.CoolDown += e.Data.(int64)
+			},
+		},
 	}
+}
 
-	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
-	item.DrawOpts.ColorM.Translate(1, 1, 0, 0)
-
-	return item
+func NewItemSpeed(pos cp.Vector) *Item {
+	return NewItemWithEffect(
+		pos,
+		"speedup.png",
+		imagecolor.RGBA{255, 255, 0, 0},
+		Effects["Speed"],
+	)
 }
 
 func NewItemCoolDown(pos cp.Vector) *Item {
-	item := newItem(pos)
-	item.Img = imagestore.Images["cooldown.png"]
-	item.OnPickup = func(player *Player) {
-		delta := player.CoolDown / 2
-		player.CoolDown -= delta
-		player.TimeManager.SetTimeout(func() {
-			player.CoolDown += delta
-		}, 6000)
-	}
-
-	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
-	item.DrawOpts.ColorM.Translate(1, 1, 0, 0)
-
-	return item
+	return NewItemWithEffect(
+		pos,
+		"cooldown.png",
+		imagecolor.RGBA{0, 55, 255, 1},
+		Effects["CoolDown"],
+	)
 }
