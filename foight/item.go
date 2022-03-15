@@ -40,7 +40,7 @@ func (i *Item) Init(game *Game) int32 {
 
 	i.Body = space.AddBody(cp.NewBody(cp.INFINITY, cp.INFINITY))
 	i.Body.SetPosition(cp.Vector{i.X, i.Y})
-	//i.Body.SetType(cp.BODY_STATIC)
+	i.Body.SetType(cp.BODY_STATIC)
 
 	bounds := i.Img.Bounds()
 	box := cp.NewBox(i.Body, float64(bounds.Dx()), float64(bounds.Dy()), 0)
@@ -81,14 +81,15 @@ func NewItemSpeed(pos cp.Vector) *Item {
 	item := newItem(pos)
 	item.Img = imagestore.Images["speedup.png"]
 	item.OnPickup = func(player *Player) {
-		delta := player.Speed * 0.5
+		delta := player.Speed * 0.8
 		player.Speed += delta
 		player.TimeManager.SetTimeout(func() {
 			player.Speed -= delta
 		}, 3000)
 	}
+
 	item.DrawOpts.ColorM.Scale(0, 0, 0, 1)
-	item.DrawOpts.ColorM.Translate(0, 1, 0, 0)
+	item.DrawOpts.ColorM.Translate(1, 1, 0, 0)
 
 	return item
 }
