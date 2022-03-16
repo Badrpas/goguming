@@ -18,4 +18,4 @@ jobs:
           go-version: '1.17.3'
 
       - name: Run build
-        run: GOOS=WIN GOARCH=amd64 go build .
+        run: GOOS=windows GOARCH=amd64 go build .
