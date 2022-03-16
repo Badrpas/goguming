@@ -15,3 +15,6 @@ On bind on specifier address
 ```shell
 go run . -addr 0.0.0.0:7331
 ```
+
+### Custom levels
+You can use [Tiled](https://www.mapeditor.org/) to open `.tmx` files in `levels` dir to edit or create new levels
