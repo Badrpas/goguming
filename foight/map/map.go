@@ -5,7 +5,9 @@ import (
 	"github.com/jakecoffman/cp"
 	"github.com/lafriks/go-tiled"
 	"github.com/solarlune/ldtkgo"
+	"image/color"
 	"log"
+	"math/rand"
 )
 
 func LoadToGameLdtk(path string, game *foight.Game) error {
@@ -51,6 +53,9 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 
 		b := foight.NewBlock(x, y)
 		b.Init(game)
+
+		c := uint8(155 + rand.Int()%100)
+		b.SetColor(color.RGBA{c, c, c, 255})
 	}
 
 	for _, objectGroup := range gameMap.ObjectGroups {
