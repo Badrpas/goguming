@@ -16,6 +16,7 @@ func init() {
 		NewItemHeal,
 		NewItemSpeed,
 		NewItemCoolDown,
+		NewItemForceUp,
 	}
 }
 
@@ -137,6 +138,21 @@ func init() {
 				e.Target.CoolDown += e.Data.(int64)
 			},
 		},
+
+		"ForceUp": {
+			Entity: &Entity{
+				Img:      imagestore.Images["forceup.png"],
+				Lifespan: 6000,
+				Scale:    cp.Vector{0.5, 0.5},
+				color:    imagecolor.RGBA{255, 0, 120, 1},
+			},
+			OnApply: func(e *Effect) {
+				e.Target.ForceModifier += 0.5
+			},
+			OnCease: func(e *Effect) {
+				e.Target.ForceModifier -= 0.5
+			},
+		},
 	}
 }
 
@@ -155,5 +171,14 @@ func NewItemCoolDown(pos cp.Vector) *Item {
 		"cooldown.png",
 		imagecolor.RGBA{0, 55, 255, 1},
 		Effects["CoolDown"],
+	)
+}
+
+func NewItemForceUp(pos cp.Vector) *Item {
+	return NewItemWithEffect(
+		pos,
+		"forceup.png",
+		imagecolor.RGBA{255, 0, 120, 1},
+		Effects["ForceUp"],
 	)
 }

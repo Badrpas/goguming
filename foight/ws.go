@@ -7,7 +7,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	//_ "net/http/pprof"
+	_ "net/http/pprof"
 )
 
 var addr = flag.String("addr", "0.0.0.0:8080", "http service address")

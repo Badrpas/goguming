@@ -54,7 +54,8 @@ type Player struct {
 	Dx, Dy float64
 	Tx, Ty float64
 
-	Speed float64
+	Speed         float64
+	ForceModifier float64
 
 	CoolDown       int64
 	last_fire_time int64
@@ -83,7 +84,9 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 
 			_PLAYER_IMAGE,
 		),
-		Speed: 1000,
+
+		Speed:         1000,
+		ForceModifier: 1,
 
 		CoolDown:       300,
 		last_fire_time: time.Now().UnixMilli(),
@@ -261,7 +264,7 @@ func (p *Player) applyUpdateMessage(um *UpdateMessage) {
 
 func (p *Player) is_fire_expected() bool {
 	cooldownExpired := (time.Now().UnixMilli() - p.last_fire_time) > p.CoolDown
-	triggerDown := (p.Tx*p.Tx + p.Ty*p.Ty) > 0.7
+	triggerDown := (p.Tx*p.Tx + p.Ty*p.Ty) > 0.4
 	return cooldownExpired && triggerDown
 }
 
@@ -282,7 +285,10 @@ func (p *Player) fire() {
 
 	dir := cp.Vector{p.Tx, p.Ty}.Normalize()
 
-	b.Body.SetVelocityVector(dir.Mult(1000.).Add(p.Body.Velocity().Mult(1.5)))
+	b.Body.SetVelocityVector(
+		dir.Mult(p.ForceModifier * 1000.).
+			Add(p.Body.Velocity().Mult(1.5)),
+	)
 }
 
 func (player *Player) StunFor(ms int64) {
