@@ -63,6 +63,8 @@ type Player struct {
 
 	stunned_until int64
 
+	KDA
+
 	messages chan UpdateMessage
 }
 
@@ -106,8 +108,13 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 		l := float64(len(player.Name))
 		ll := float64(len(info_hp))
 
-		text.Draw(screen, player.Name, mplusNormalFont, int(player.X-l*4), int(player.Y-62), player.color)
-		text.Draw(screen, info_hp, mplusNormalFont, int(player.X-ll*2.5), int(player.Y-42), player.color)
+		f := mplusNormalFont
+		text.Draw(screen, player.Name, f, int(player.X-l*4), int(player.Y-62), player.color)
+		text.Draw(screen, info_hp, f, int(player.X-ll*2.5), int(player.Y-42), player.color)
+
+		kda := player.KDA.ToString()
+		lk := float64(len(kda))
+		text.Draw(screen, kda, f, int(player.X-lk*4), int(player.Y+46), player.color)
 	}
 
 	player.OnDmgReceived = func(from *Entity, dmg int32) {
@@ -119,6 +126,18 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 
 		if player.HP <= 0 {
 			player.Respawn()
+			player.DeathCount++
+			bullet, ok := from.Holder.(*Bullet)
+			if !ok {
+				return
+			}
+
+			player, ok := bullet.Issuer.Holder.(*Player)
+			if !ok {
+				return
+			}
+
+			player.KillCount++
 		}
 	}
 	player.Entity.Holder = player
@@ -253,17 +272,17 @@ func (p *Player) fire() {
 	b.Shape.Filter.Group = p.Shape.Filter.Group
 	b.DrawOpts.ColorM = p.DrawOpts.ColorM
 	b.Lifespan = 800
-	b.on_dmg_dealt = on_bullet_dmg_dealt
+	b.Issuer = p.Entity
+	b.on_dmg_dealt = func(b *Bullet, to *Entity) {
+		p.AttacksConnectedCount++
+		b.Entity.RemoveFromGame()
+	}
 
 	p.Game.AddEntity(b.Entity)
 
 	dir := cp.Vector{p.Tx, p.Ty}.Normalize()
 
 	b.Body.SetVelocityVector(dir.Mult(1000.).Add(p.Body.Velocity().Mult(1.5)))
-}
-
-func on_bullet_dmg_dealt(b *Bullet, to *Entity) {
-	b.Entity.RemoveFromGame()
 }
 
 func (player *Player) StunFor(ms int64) {

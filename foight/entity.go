@@ -148,6 +148,7 @@ func (e *Entity) RemoveFromGame() {
 func (e *Entity) RemovePhysics() {
 	if e.Body != nil {
 		e.Game.Space.RemoveBody(e.Body)
+		e.Body.UserData = nil
 		e.Body = nil
 	}
 	if e.Shape != nil {

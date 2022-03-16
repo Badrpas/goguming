@@ -12,7 +12,8 @@ type Effect struct {
 	OnCease EffectCallback
 }
 
-func (proto *Effect) ApplyTo(player *Player) {
+// Returns newly applied (cloned) Effect
+func (proto *Effect) ApplyTo(player *Player) *Effect {
 	_e := *proto
 	effect := &_e
 
@@ -35,6 +36,8 @@ func (proto *Effect) ApplyTo(player *Player) {
 	if effect.OnApply != nil {
 		effect.OnApply(effect)
 	}
+
+	return effect
 }
 
 func (effect *Effect) Update(dt float64) {

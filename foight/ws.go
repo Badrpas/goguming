@@ -64,14 +64,17 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("New player connected: [%s] color: %X", name, color)
 
-		player := NewPlayer(game, name, color)
+		player := (<-game.QueueJob(func() interface{} {
+			return NewPlayer(game, name, color)
+		})).(*Player)
 
 		for {
 			_, message, err := c.ReadMessage()
 
 			if err != nil {
-				game.QueueJob(func() {
+				<-game.QueueJob(func() interface{} {
 					game.RemoveEntity(player.Entity)
+					return 0
 				})
 				log.Println("read err:", err)
 				break

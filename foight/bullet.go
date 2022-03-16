@@ -20,7 +20,8 @@ func init() {
 type Bullet struct {
 	*Entity
 
-	dmg int32
+	dmg    int32
+	Issuer *Entity
 
 	on_dmg_dealt func(b *Bullet, to *Entity)
 }
@@ -47,6 +48,7 @@ func NewBullet(g *Game, x, y float64) *Bullet {
 		dmg: 1,
 	}
 
+	b.Holder = b
 	body.UserData = b.Entity
 
 	b.Entity.UpdateFn = func(e *Entity, dt float64) {

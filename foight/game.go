@@ -29,13 +29,14 @@ type Game struct {
 
 	TimerManager *TimeHolder
 
-	queued_jobs []func()
+	queued_jobs chan func()
 }
 
 func NewGame() *Game {
 	game := &Game{
 		Space:        cp.NewSpace(),
 		TimerManager: &TimeHolder{},
+		queued_jobs:  make(chan func(), 1024),
 	}
 
 	game.Space.Iterations = 10
@@ -70,8 +71,26 @@ func NewGame() *Game {
 	return game
 }
 
-func (g *Game) QueueJob(job func()) {
-	g.queued_jobs = append(g.queued_jobs, job)
+func (g *Game) QueueJob(job func() interface{}) chan interface{} {
+	c := make(chan interface{})
+
+	g.queued_jobs <- func() {
+		c <- job()
+		close(c)
+	}
+
+	return c
+}
+
+func (g *Game) runQueue() {
+	for {
+		select {
+		case job := <-g.queued_jobs:
+			job()
+		default:
+			return
+		}
+	}
 }
 
 func initItemSpawner(game *Game) {
@@ -138,10 +157,7 @@ func (g *Game) Update() error {
 		}
 	}
 
-	for _, job := range g.queued_jobs {
-		job()
-	}
-	g.queued_jobs = nil
+	g.runQueue()
 
 	return nil
 }
