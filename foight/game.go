@@ -94,16 +94,43 @@ func (g *Game) runQueue() {
 }
 
 func initItemSpawner(game *Game) {
+	const ITEM_LIFESPAN = 8000
+	const ITEM_SPAWN_INTERVAL = 3500
+	last_spawns := make([]int, ITEM_LIFESPAN/ITEM_SPAWN_INTERVAL+4)
+	l := len(last_spawns)
+	storage_idx := 0
+
+	get_next_point_idx := func() int {
+		point_count := len(game.PlayerSpawnPoints)
+		spawn_idx := 0
+	Outer:
+		for i := 0; i < l*2; //goland:noinspection GoUnreachableCode
+		i++ {
+			spawn_idx = rand.Int() % point_count
+			for _, used_idx := range last_spawns {
+				if used_idx == spawn_idx {
+					continue Outer
+				}
+			}
+
+			storage_idx = (storage_idx + 1) % l
+			last_spawns[storage_idx] = spawn_idx
+			return spawn_idx
+		}
+
+		return spawn_idx
+	}
+
 	game.TimerManager.SetInterval(func() {
-		l := len(game.PlayerSpawnPoints)
 		if l > 0 {
-			point := game.PlayerSpawnPoints[rand.Int()%l]
+			point := game.PlayerSpawnPoints[get_next_point_idx()]
 			ctor := ItemConstructors[rand.Int()%len(ItemConstructors)]
 			item := ctor(point)
 			item.Init(game)
-			item.Lifespan = 8000
+			item.Lifespan = ITEM_LIFESPAN
 		}
-	}, 3000)
+	}, ITEM_SPAWN_INTERVAL)
+
 }
 
 func addWalls(space *cp.Space) {
