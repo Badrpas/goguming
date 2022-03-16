@@ -27,6 +27,7 @@ jobs:
           mkdir goguming-win/img/
           cp -r img/*.png goguming-win/img/
           cp -r levels/ goguming-win/levels/
+          cp -r static/ goguming-win/static/
           zip -r goguming-win.zip goguming-win
 
       - name: Release
