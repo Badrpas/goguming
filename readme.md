@@ -1,7 +1,10 @@
 ## goguming
-Couch multiplayer using your mobile phone as controller
+Couch multiplayer with your mobile phone as controller
 
-### Startup
+### Download
+Get prebuilt version as zip archive from [latest release](https://github.com/Badrpas/goguming/releases/latest)
+
+### Build and run
 To run locally
 ```shell
 go run .
