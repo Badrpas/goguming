@@ -2,8 +2,8 @@ name: CICD
 
 on:
   push:
-    branches:
-      - cicd
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
@@ -27,7 +27,8 @@ jobs:
           cp -r img/ goguming-win/img/
           cp -r levels/ goguming-win/levels/
           zip -r goguming-win.zip goguming-win
-          ls
 
-      - name: Deploy
-        run: echo Will save to artifacts here
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: goguming-win.zip
