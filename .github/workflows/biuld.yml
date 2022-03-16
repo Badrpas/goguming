@@ -1,0 +1,21 @@
+name: CICD
+
+on:
+  push:
+    branches:
+      - cicd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17.3'
+
+      - name: Run build
+        run: GOOS=WIN GOARCH=amd64 go build .
