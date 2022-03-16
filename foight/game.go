@@ -29,7 +29,8 @@ type Game struct {
 
 	TimerManager *TimeHolder
 
-	queued_jobs chan func()
+	queued_jobs    chan func()
+	removal_locked bool
 }
 
 func NewGame() *Game {
@@ -80,6 +81,10 @@ func (g *Game) QueueJob(job func() interface{}) chan interface{} {
 	}
 
 	return c
+}
+
+func (g *Game) QueueJobVoid(job func()) {
+	g.queued_jobs <- job
 }
 
 func (g *Game) runQueue() {
@@ -170,7 +175,9 @@ func (g *Game) Update() error {
 		}
 	}
 
+	g.removal_locked = true
 	g.Space.Step(dt)
+	g.removal_locked = false
 
 	for _, e := range g.Entities {
 		if e == nil {
@@ -227,6 +234,13 @@ func (g *Game) AddEntity(e *Entity) int32 {
 }
 
 func (g *Game) RemoveEntity(e *Entity) {
+	if g.removal_locked {
+		g.QueueJobVoid(func() {
+			g.RemoveEntity(e)
+		})
+		return
+	}
+
 	idx := g.indexOfEntity(e)
 	if idx == -1 {
 		return
