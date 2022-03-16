@@ -24,8 +24,8 @@ jobs:
         run: |
           mkdir goguming-win
           cp game.exe goguming-win/
-          cp img/ goguming-win/img/
-          cp levels/ goguming-win/levels/
+          cp -r img/ goguming-win/img/
+          cp -r levels/ goguming-win/levels/
           zip -r goguming-win.zip goguming-win
           ls
 
