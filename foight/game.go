@@ -1,6 +1,7 @@
 package foight
 
 import (
+	"game/foight/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
 	"log"
@@ -27,7 +28,7 @@ type Game struct {
 
 	Space *cp.Space
 
-	TimerManager *TimeHolder
+	TimerManager *util.TimeHolder
 
 	queued_jobs    chan func()
 	removal_locked bool
@@ -36,7 +37,7 @@ type Game struct {
 func NewGame() *Game {
 	game := &Game{
 		Space:        cp.NewSpace(),
-		TimerManager: &TimeHolder{},
+		TimerManager: &util.TimeHolder{},
 		queued_jobs:  make(chan func(), 1024),
 	}
 

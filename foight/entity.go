@@ -1,6 +1,7 @@
 package foight
 
 import (
+	"game/foight/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
 	imagecolor "image/color"
@@ -26,7 +27,7 @@ type Entity struct {
 
 	CreatedAt, Lifespan int64
 
-	TimeManager *TimeHolder
+	TimeManager *util.TimeHolder
 
 	Holder interface{}
 
@@ -61,9 +62,9 @@ func NewEntity(
 		image,
 		&ebiten.DrawImageOptions{},
 		cp.Vector{1, 1},
-		TimeNow(),
+		util.TimeNow(),
 		-1,
-		&TimeHolder{},
+		&util.TimeHolder{},
 		nil,
 		nil,
 		nil,
@@ -91,7 +92,7 @@ func (e *Entity) PreUpdate(dt float64) {
 func (e *Entity) Update(dt float64) {
 	e.TimeManager.Update()
 
-	if e.Lifespan > 0 && (TimeNow()-e.CreatedAt) >= e.Lifespan {
+	if e.Lifespan > 0 && (util.TimeNow()-e.CreatedAt) >= e.Lifespan {
 		// Should it be handled differently?
 		if e.Game != nil {
 			e.Game.RemoveEntity(e)

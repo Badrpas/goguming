@@ -1,4 +1,4 @@
-package foight
+package mixins
 
 import "fmt"
 

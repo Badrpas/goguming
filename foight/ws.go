@@ -1,6 +1,7 @@
 package foight
 
 import (
+	"game/foight/net"
 	"github.com/gorilla/websocket"
 	"image/color"
 
@@ -80,7 +81,7 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			player.messages <- decodeUpdateMessage(message)
+			player.messages <- net.DecodeUpdateMessage(message)
 		}
 
 	}
@@ -89,7 +90,7 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 
 func RunApi(game *Game) {
 	flag.Parse()
-	log.SetFlags(0)
+	//log.SetFlags(0)
 
 	http.HandleFunc("/ws", getWsHandler(game))
 	http.Handle("/", http.FileServer(http.Dir("./static/")))

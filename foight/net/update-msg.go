@@ -1,11 +1,11 @@
-package foight
+package net
 
 type UpdateMessage struct {
 	Dx, Dy int8
 	Tx, Ty int8
 }
 
-func decodeUpdateMessage(data []byte) UpdateMessage {
+func DecodeUpdateMessage(data []byte) UpdateMessage {
 	um := UpdateMessage{}
 	um.decode(data)
 	return um

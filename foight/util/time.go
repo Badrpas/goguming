@@ -1,4 +1,4 @@
-package foight
+package util
 
 import (
 	"time"

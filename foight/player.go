@@ -1,6 +1,9 @@
 package foight
 
 import (
+	"game/foight/mixins"
+	"game/foight/net"
+	"game/foight/util"
 	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
@@ -64,9 +67,9 @@ type Player struct {
 
 	stunned_until int64
 
-	KDA
+	mixins.KDA
 
-	messages chan UpdateMessage
+	messages chan net.UpdateMessage
 }
 
 func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
@@ -91,7 +94,7 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 		CoolDown:       300,
 		last_fire_time: time.Now().UnixMilli(),
 
-		messages: make(chan UpdateMessage, 1024),
+		messages: make(chan net.UpdateMessage, 1024),
 	}
 
 	player.Game = g
@@ -255,7 +258,7 @@ func (p *Player) readMessages() {
 	}
 }
 
-func (p *Player) applyUpdateMessage(um *UpdateMessage) {
+func (p *Player) applyUpdateMessage(um *net.UpdateMessage) {
 	p.Dx = float64(um.Dx) / 50
 	p.Dy = float64(um.Dy) / 50
 	p.Tx = float64(um.Tx) / 50
@@ -292,10 +295,10 @@ func (p *Player) fire() {
 }
 
 func (player *Player) StunFor(ms int64) {
-	player.stunned_until = TimeNow() + ms
+	player.stunned_until = util.TimeNow() + ms
 }
 func (player *Player) IsStunned() bool {
-	return TimeNow() < player.stunned_until
+	return util.TimeNow() < player.stunned_until
 }
 
 func (player *Player) UpdateEffects(dt float64) {
