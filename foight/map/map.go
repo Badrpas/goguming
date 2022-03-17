@@ -4,31 +4,10 @@ import (
 	"game/foight"
 	"github.com/jakecoffman/cp"
 	"github.com/lafriks/go-tiled"
-	"github.com/solarlune/ldtkgo"
 	"image/color"
 	"log"
 	"math/rand"
 )
-
-func LoadToGameLdtk(path string, game *foight.Game) error {
-	file, err := ldtkgo.Open(path)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	grid := file.Levels[0].Layers[0].IntGrid
-
-	for _, cell := range grid {
-		x, y := cell.Position[0], cell.Position[1]
-		b := foight.NewBlock(float64(x), float64(y))
-		b.Init(game)
-	}
-
-	log.Println(file)
-
-	return nil
-}
 
 func LoadToGameTiled(path string, game *foight.Game) error {
 	gameMap, err := tiled.LoadFile(path)

@@ -15,7 +15,7 @@ var mapname = flag.String("level", "levels/lul.tmx", "Map to run with")
 func main() {
 
 	g := foight.NewGame()
-	//err := levelmap.LoadToGameLdtk("levels/hola.ldtk", g)
+
 	err := levelmap.LoadToGameTiled(*mapname, g)
 	if err != nil {
 		log.Println("Couldn't load level", mapname)
