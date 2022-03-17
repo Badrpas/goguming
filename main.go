@@ -10,7 +10,7 @@ import (
 	"game/foight"
 )
 
-var mapname = flag.String("level", "levels/lul.tmx", "Map to run with")
+var mapname = flag.String("level", "levels/entry.tmx", "Map to run with")
 
 func main() {
 
