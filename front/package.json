@@ -1,0 +1,17 @@
+{
+  "name": "goguming-controller-ui",
+  "version": "0.0.4",
+  "main": "src/main.js",
+  "repository": "https://github.com/Badrpas/goguming",
+  "author": "Vadim Samarin",
+  "license": "MIT",
+  "scripts": {
+    "build": "snowpack build"
+  },
+  "devDependencies": {
+    "snowpack": "3.8.8"
+  },
+  "dependencies": {
+    "nipplejs": "0.9.0"
+  }
+}
