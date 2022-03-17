@@ -1,6 +1,8 @@
 ## goguming
 Couch multiplayer with your mobile phone as controller
 
+![Screenshot](screenshot.png)
+
 ### Download
 Get prebuilt version as zip archive from [latest release](https://github.com/Badrpas/goguming/releases/latest)
 
