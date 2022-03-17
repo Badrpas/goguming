@@ -92,7 +92,10 @@ func (e *Entity) Update(dt float64) {
 	e.TimeManager.Update()
 
 	if e.Lifespan > 0 && (TimeNow()-e.CreatedAt) >= e.Lifespan {
-		e.Game.RemoveEntity(e)
+		// Should it be handled differently?
+		if e.Game != nil {
+			e.Game.RemoveEntity(e)
+		}
 		return
 	}
 
