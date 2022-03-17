@@ -1,4 +1,4 @@
-import nipplejs from './lib/nipplejs/index.js';
+import nipplejs from 'nipplejs';
 
 const Length = 4;
 
