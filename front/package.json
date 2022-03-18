@@ -2,7 +2,7 @@
   "name": "goguming-controller-ui",
   "version": "0.0.4",
   "main": "src/main.js",
-  "repository": "https://github.com/Badrpas/goguming",
+  "repository": "https://github.com/Badrpas/goguming.git",
   "author": "Vadim Samarin",
   "license": "MIT",
   "scripts": {

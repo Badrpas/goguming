@@ -20,17 +20,26 @@ To find out the IP (on windows)
 
 ### Build and run from source
 #### Prerequisites
-[go](https://go.dev/dl/) version 1.17
+- [go](https://go.dev/dl/) version 1.17
+
+- [Node.js](https://nodejs.org/) for frontend build
 
 #### Get the sources
 ```shell
-git clone https://github.com/Badrpas/goguming.git
-cd goguming
+$ git clone https://github.com/Badrpas/goguming.git
+$ cd goguming
 ```
 
-#### Build and run in one go
+#### Build web client
 ```shell
-go run .
+$ cd front
+$ npm i && npm run build
+$ cd ..
+```
+
+#### Build and run
+```shell
+$ go run .
 ```
 
 #### CLI options
