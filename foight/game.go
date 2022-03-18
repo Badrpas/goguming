@@ -42,7 +42,7 @@ func NewGame() *Game {
 	}
 
 	game.Space.Iterations = 10
-	game.Space.SetDamping(0.1)
+	game.Space.SetDamping(0.8)
 
 	addWalls(game.Space)
 	initItemSpawner(game)

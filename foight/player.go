@@ -88,11 +88,11 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 			_PLAYER_IMAGE,
 		),
 
-		Speed:         1000,
+		Speed:         1500,
 		ForceModifier: 1,
 
 		CoolDown:       300,
-		last_fire_time: time.Now().UnixMilli(),
+		last_fire_time: util.TimeNow(),
 
 		messages: make(chan net.UpdateMessage, 1024),
 	}
@@ -153,8 +153,11 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 	g.AddEntity(player.Entity)
 
 	{ // Physics
-		body := g.Space.AddBody(cp.NewBody(1, 1))
+		body := g.Space.AddBody(cp.NewBody(1, cp.INFINITY))
 		body.UserData = player.Entity
+		body.SetVelocityUpdateFunc(func(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
+			cp.BodyUpdateVelocity(body, gravity, damping*0.9, dt)
+		})
 
 		radius := float64(_PLAYER_IMAGE.Bounds().Dx() / 2)
 		shape := g.Space.AddShape(cp.NewCircle(body, radius, cp.Vector{}))
@@ -201,11 +204,14 @@ func (p *Player) UpdateInputs(dt float64) {
 		return
 	}
 
-	tx := p.Dx * dt * p.Speed
-	ty := p.Dy * dt * p.Speed
+	mod := dt * p.Speed //* 0.2
+
+	tx := p.Dx * mod
+	ty := p.Dy * mod
 
 	impulse := cp.Vector{tx, ty}
 	p.Body.ApplyImpulseAtLocalPoint(impulse, cp.Vector{})
+	//p.Body.SetPosition(p.Body.Position().Add(impulse))
 
 	if p.is_fire_expected() {
 		p.fire()
@@ -289,7 +295,7 @@ func (p *Player) fire() {
 	dir := cp.Vector{p.Tx, p.Ty}.Normalize()
 
 	b.Body.SetVelocityVector(
-		dir.Mult(p.ForceModifier * 1000.).
+		dir.Mult(p.ForceModifier * 600.).
 			Add(p.Body.Velocity().Mult(1.5)),
 	)
 }

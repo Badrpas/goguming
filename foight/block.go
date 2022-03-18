@@ -25,7 +25,7 @@ func NewBlock(x, y float64) *Block {
 func (b *Block) Init(game *Game) int32 {
 	space := game.Space
 
-	b.Body = space.AddBody(cp.NewBody(cp.INFINITY, cp.INFINITY))
+	b.Body = space.AddBody(cp.NewBody(1, cp.INFINITY))
 	b.Body.SetPosition(cp.Vector{b.X, b.Y})
 	b.Body.SetType(cp.BODY_STATIC)
 
