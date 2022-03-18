@@ -11,5 +11,5 @@
 - [ ] Skills
   - [ ] Walk through
 
-- [ ] Movement on respawn
+- [x] Movement on respawn
 

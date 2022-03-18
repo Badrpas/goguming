@@ -193,7 +193,6 @@ func (player *Player) Respawn() {
 
 	player.Body.SetVelocityVector(cp.Vector{})
 
-	player.StunFor(INVINCIBILITY_TIME * 9 / 10)
 	player.SetInvincible(INVINCIBILITY_TIME)
 }
 
@@ -232,7 +231,6 @@ func (p *Player) SetInvincible(duration int64) {
 	p.is_invincible = true
 	precolor := p.color
 
-	p.Shape.SetSensor(true)
 	p.DrawOpts.ColorM.Scale(0.4, 0.4, 0.4, 1)
 
 	iteration := 1
@@ -247,7 +245,6 @@ func (p *Player) SetInvincible(duration int64) {
 
 	p.TimeManager.SetTimeout(func() {
 		p.TimeManager.ClearInterval(interval_id)
-		p.Shape.SetSensor(false)
 		p.is_invincible = false
 		p.SetColor(precolor)
 	}, duration)
