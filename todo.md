@@ -1,11 +1,12 @@
 
-- [ ] Controllability
+- [x] Controllability
+ 
+- [ ] Walls merge
 
 - [ ] Ultimates
   - [ ] frontend button
   - [ ] laser?
 
-- [ ] Walls merge
 
 - [ ] Skills
   - [ ] Walk through
