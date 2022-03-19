@@ -5,6 +5,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
 	imagecolor "image/color"
+	"log"
 )
 
 type Entity struct {
@@ -90,6 +91,10 @@ func (e *Entity) PreUpdate(dt float64) {
 }
 
 func (e *Entity) Update(dt float64) {
+	if e.Game == nil {
+		log.Println("Got Entity.Update() without .Game being present")
+		return
+	}
 	e.TimeManager.Update()
 
 	if e.Lifespan > 0 && (util.TimeNow()-e.CreatedAt) >= e.Lifespan {
@@ -122,7 +127,15 @@ func (e *Entity) Update(dt float64) {
 		e.Y = position.Y
 	}
 
-	e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
+	//e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
+	e.translateCamera()
+}
+
+func (e *Entity) translateCamera() {
+	c := e.Game.Camera
+	w, h := c.Surface.Size()
+	e.DrawOpts.GeoM.Translate(float64(w)/2, float64(h)/2)
+	e.DrawOpts.GeoM.Translate(-c.X+e.X, -c.Y+e.Y)
 }
 
 func (e *Entity) Render(screen *ebiten.Image) {

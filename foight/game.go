@@ -4,8 +4,10 @@ import (
 	"game/foight/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
+	camera "github.com/melonfunction/ebiten-camera"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"image/color"
@@ -21,6 +23,7 @@ func init() {
 }
 
 type Game struct {
+	Camera   *camera.Camera
 	Entities []*Entity
 
 	PlayerSpawnPoints []cp.Vector
@@ -46,6 +49,7 @@ func NewGame() *Game {
 
 	addWalls(game.Space)
 	initItemSpawner(game)
+	initCamera(game)
 
 	handler := game.Space.NewCollisionHandler(1, 1)
 	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
@@ -71,6 +75,11 @@ func NewGame() *Game {
 	}
 
 	return game
+}
+
+func initCamera(game *Game) {
+	game.Camera = camera.NewCamera(ScreenWidth, ScreenHeight, 0, 0, 0, 1)
+	game.Camera.SetPosition(ScreenWidth/2, ScreenHeight/2)
 }
 
 func (g *Game) QueueJob(job func() interface{}) chan interface{} {
@@ -162,6 +171,24 @@ func (g *Game) Layout(outWidth, outHeight int) (width, height int) {
 func (g *Game) Update() error {
 	dt := 1. / 60. // Really disliking that
 
+	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+		os.Exit(0)
+	}
+
+	cam_delta := dt * 100
+	if ebiten.IsKeyPressed(ebiten.KeyA) {
+		g.Camera.MovePosition(-cam_delta, 0)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyD) {
+		g.Camera.MovePosition(cam_delta, 0)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
+		g.Camera.MovePosition(0, -cam_delta)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyS) {
+		g.Camera.MovePosition(0, cam_delta)
+	}
+
 	g.TimerManager.Update()
 
 	for _, e := range g.Entities {
@@ -198,15 +225,20 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.Black)
+	screen.Clear()
+	s := g.Camera.Surface
+	s.Clear()
+	s.Fill(color.Black)
 
 	for _, e := range g.Entities {
 		if e.RenderFn != nil {
-			e.RenderFn(e, screen)
+			e.RenderFn(e, s)
 		} else {
-			e.Render(screen)
+			e.Render(s)
 		}
 	}
+
+	g.Camera.Blit(screen)
 }
 
 func (g *Game) indexOfEntity(e *Entity) int32 {
