@@ -1,7 +1,7 @@
 package foight
 
 import (
-	imagestore "game/img"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
 )
 
@@ -9,13 +9,13 @@ type Block struct {
 	*Entity
 }
 
-func NewBlock(x, y float64) *Block {
+func NewBlock(x, y float64, img *ebiten.Image) *Block {
 	block := &Block{
 		Entity: NewEntity(
 			x, y,
 			nil,
 			nil,
-			imagestore.Images["block.png"],
+			img,
 		),
 	}
 
