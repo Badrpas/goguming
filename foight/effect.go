@@ -1,5 +1,7 @@
 package foight
 
+import "github.com/hajimehoshi/ebiten/v2"
+
 type EffectCallback func(e *Effect)
 
 type Effect struct {
@@ -23,6 +25,8 @@ func (proto *Effect) ApplyTo(player *Player) *Effect {
 	effect.Target = player
 	effect.Lifespan = proto.Lifespan
 	effect.SetColor(proto.color)
+
+	effect.DrawOpts.Filter = ebiten.FilterLinear
 
 	effect.UpdateFn = func(en *Entity, dt float64) {
 		effect.Update(dt)
