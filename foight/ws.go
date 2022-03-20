@@ -73,11 +73,11 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 			_, message, err := c.ReadMessage()
 
 			if err != nil {
-				<-game.QueueJob(func() interface{} {
-					game.RemoveEntity(player.Entity)
-					return 0
-				})
 				log.Println("read err:", err)
+
+				game.QueueJobVoid(func() {
+					game.RemoveEntity(player.Entity)
+				})
 				break
 			}
 
