@@ -13,6 +13,7 @@ import (
 var mapname = flag.String("level", "levels/entry.tmx", "Map to run with")
 
 func main() {
+	flag.Parse()
 
 	g := foight.NewGame()
 

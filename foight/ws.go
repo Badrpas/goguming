@@ -89,7 +89,6 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 }
 
 func RunApi(game *Game) {
-	flag.Parse()
 	//log.SetFlags(0)
 
 	http.HandleFunc("/ws", getWsHandler(game))

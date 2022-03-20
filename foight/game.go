@@ -1,6 +1,7 @@
 package foight
 
 import (
+	"flag"
 	"game/foight/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
@@ -12,6 +13,10 @@ import (
 
 	"image/color"
 )
+
+var init_local = flag.Bool("local", false, "Add local player")
+
+var local_player_added bool
 
 const (
 	ScreenWidth  = 1600
@@ -50,6 +55,11 @@ func NewGame() *Game {
 	addWalls(game.Space)
 	initItemSpawner(game)
 	initCamera(game)
+
+	log.Println(init_local, *init_local)
+	if *init_local {
+		addLocalPlayer(game)
+	}
 
 	handler := game.Space.NewCollisionHandler(1, 1)
 	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
@@ -176,16 +186,16 @@ func (g *Game) Update() error {
 	}
 
 	cam_delta := dt * 100
-	if ebiten.IsKeyPressed(ebiten.KeyA) {
+	if ebiten.IsKeyPressed(ebiten.KeyH) {
 		g.Camera.MovePosition(-cam_delta, 0)
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyD) {
+	if ebiten.IsKeyPressed(ebiten.KeyL) {
 		g.Camera.MovePosition(cam_delta, 0)
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyW) {
+	if ebiten.IsKeyPressed(ebiten.KeyK) {
 		g.Camera.MovePosition(0, -cam_delta)
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyS) {
+	if ebiten.IsKeyPressed(ebiten.KeyJ) {
 		g.Camera.MovePosition(0, cam_delta)
 	}
 
@@ -220,6 +230,9 @@ func (g *Game) Update() error {
 	}
 
 	g.runQueue()
+	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+		addLocalPlayer(g)
+	}
 
 	return nil
 }
@@ -289,4 +302,58 @@ func (g *Game) RemoveEntity(e *Entity) {
 	}
 
 	e.Game = nil
+}
+
+func addLocalPlayer(g *Game) {
+	if local_player_added {
+		return
+	}
+	local_player_added = true
+
+	player := NewPlayer(g, "Local Yoba", color.Gray{255})
+	super_preupdate := player.PreUpdateFn
+	player.PreUpdateFn = func(e *Entity, dt float64) {
+		var dx, dy, tx, ty float64
+
+		if ebiten.IsKeyPressed(ebiten.KeyA) {
+			dx += -1
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyD) {
+			dx += 1
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyW) {
+			dy += -1
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyS) {
+			dy += 1
+		}
+
+		if dx != 0 || dy != 0 {
+			v := cp.Vector{dx, dy}.Normalize()
+			dx, dy = v.X, v.Y
+		}
+
+		if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+			tx += -1
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyRight) {
+			tx += 1
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyUp) {
+			ty += -1
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyDown) {
+			ty += 1
+		}
+
+		if tx != 0 || ty != 0 {
+			v := cp.Vector{tx, ty}.Normalize()
+			tx, ty = v.X, v.Y
+		}
+
+		p := player
+		p.Dx, p.Dy, p.Tx, p.Ty = dx, dy, tx, ty
+
+		super_preupdate(e, dt)
+	}
 }
