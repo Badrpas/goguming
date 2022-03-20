@@ -1,14 +1,14 @@
 package foight
 
 import (
+	"flag"
 	"game/foight/net"
 	"github.com/gorilla/websocket"
 	"image/color"
-
-	"flag"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"regexp"
 )
 
 var addr = flag.String("addr", "0.0.0.0:8080", "http service address")
@@ -88,11 +88,19 @@ func getWsHandler(game *Game) func(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RunApi(game *Game) {
-	//log.SetFlags(0)
+func getRootHandler() func(w http.ResponseWriter, r *http.Request) {
+	fs := http.FileServer(http.Dir("./static/"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		if ok, err := regexp.MatchString("\\.js$", r.URL.Path); ok && err == nil {
+			w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		}
+		fs.ServeHTTP(w, r)
+	}
+}
 
+func RunApi(game *Game) {
 	http.HandleFunc("/ws", getWsHandler(game))
-	http.Handle("/", http.FileServer(http.Dir("./static/")))
+	http.HandleFunc("/", getRootHandler())
 
 	log.Println("Starting HTTP server on", *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
