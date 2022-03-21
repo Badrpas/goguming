@@ -239,6 +239,8 @@ func (g *Game) Update() error {
 		addLocalPlayer(g)
 	}
 
+	UpdateCamera(g)
+
 	return nil
 }
 
@@ -257,6 +259,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	g.Camera.Blit(screen)
+}
+
+func (g *Game) TranslateCamera(opts *ebiten.DrawImageOptions) {
+	c := g.Camera
+	w, h := c.Surface.Size()
+	opts.GeoM.Translate(float64(w)/2, float64(h)/2)
+	opts.GeoM.Translate(-c.X, -c.Y)
 }
 
 func (g *Game) indexOfEntity(e *Entity) int32 {

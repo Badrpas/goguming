@@ -3,6 +3,7 @@ package foight
 import (
 	"game/foight/mixins"
 	"game/foight/net"
+	"game/foight/util"
 	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
@@ -94,7 +95,12 @@ func (p *Player) renderKda(screen *ebiten.Image) {
 	kda := p.KDA.ToString()
 	lk := float64(len(kda))
 	f := mplusNormalFont
-	text.Draw(screen, kda, f, int(p.X-lk*4), int(p.Y+46), p.color)
+	opts := &ebiten.DrawImageOptions{}
+	util.SetDrawOptsColor(opts, p.color)
+
+	opts.GeoM.Translate((p.X-lk*4), (p.Y+46))
+	p.Game.TranslateCamera(opts)
+	text.DrawWithOptions(screen, kda, f, opts)
 }
 
 func (player *Player) Respawn() {

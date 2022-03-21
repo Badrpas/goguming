@@ -121,7 +121,9 @@ func (e *Entity) Update(dt float64) {
 
 	if e.Body == nil {
 		if e.Parent != nil {
-			e.DrawOpts.GeoM.Translate(float64(e.X)+e.Parent.X, float64(e.Y)+e.Parent.Y)
+			pos := e.GetPosition().Add(e.Parent.GetPosition())
+			e.DrawOpts.GeoM.Translate(pos.X, pos.Y)
+			e.Game.TranslateCamera(e.DrawOpts)
 			return
 		}
 	} else {
@@ -130,15 +132,19 @@ func (e *Entity) Update(dt float64) {
 		e.Y = position.Y
 	}
 
-	//e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
-	e.translateCamera()
+	e.DrawOpts.GeoM.Translate(float64(e.X), float64(e.Y))
+	//e.translateCamera()
+	e.Game.TranslateCamera(e.DrawOpts)
 }
 
 func (e *Entity) translateCamera() {
-	c := e.Game.Camera
-	w, h := c.Surface.Size()
-	e.DrawOpts.GeoM.Translate(float64(w)/2, float64(h)/2)
-	e.DrawOpts.GeoM.Translate(-c.X+e.X, -c.Y+e.Y)
+}
+
+func (e *Entity) GetPosition() cp.Vector {
+	return cp.Vector{e.X, e.Y}
+}
+func (e *Entity) SetPosition(pos cp.Vector) {
+	e.X, e.Y = pos.X, pos.Y
 }
 
 func (e *Entity) Render(screen *ebiten.Image) {
@@ -151,14 +157,7 @@ func (e *Entity) SetColor(color imagecolor.Color) {
 	}
 	e.color = color
 
-	e.DrawOpts.ColorM.Scale(0, 0, 0, 1)
-
-	rb, gb, bb, _ := color.RGBA()
-	r := float64(rb) / 0xFFFF
-	g := float64(gb) / 0xFFFF
-	b := float64(bb) / 0xFFFF
-
-	e.DrawOpts.ColorM.Translate(r, g, b, 0)
+	util.SetDrawOptsColor(e.DrawOpts, color)
 }
 
 func (e *Entity) RemoveFromGame() {

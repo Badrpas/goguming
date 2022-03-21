@@ -70,8 +70,18 @@ func NewUnit(name string, x, y float64, img *ebiten.Image) *Unit {
     ll := float64(len(info_hp))
 
     f := mplusNormalFont
-    text.Draw(screen, unit.Name, f, int(unit.X-l*4), int(unit.Y-62), unit.color)
-    text.Draw(screen, info_hp, f, int(unit.X-ll*2.5), int(unit.Y-42), unit.color)
+
+    opts := &ebiten.DrawImageOptions{}
+    util.SetDrawOptsColor(opts, e.color)
+
+    opts.GeoM.Translate((unit.X-l*4), (unit.Y-62))
+    e.Game.TranslateCamera(opts)
+    text.DrawWithOptions(screen, unit.Name, f, opts)
+
+    opts.GeoM.Reset()
+    opts.GeoM.Translate((unit.X-ll*2.5), (unit.Y-42))
+    e.Game.TranslateCamera(opts)
+    text.DrawWithOptions(screen, info_hp, f, opts)
   }
 
   unit.OnDmgReceived = func(from *Entity, dmg int32) {
