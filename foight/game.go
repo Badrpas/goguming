@@ -52,7 +52,7 @@ func NewGame() *Game {
 	game.Space.Iterations = 10
 	game.Space.SetDamping(0.8)
 
-	addWalls(game.Space)
+	//addWalls(game.Space)
 	initItemSpawner(game)
 	initCamera(game)
 
@@ -190,18 +190,20 @@ func (g *Game) Update() error {
 		os.Exit(0)
 	}
 
-	cam_delta := dt * 100
-	if ebiten.IsKeyPressed(ebiten.KeyH) {
-		g.Camera.MovePosition(-cam_delta, 0)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyL) {
-		g.Camera.MovePosition(cam_delta, 0)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyK) {
-		g.Camera.MovePosition(0, -cam_delta)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyJ) {
-		g.Camera.MovePosition(0, cam_delta)
+	{
+		cam_delta := dt * 100
+		if ebiten.IsKeyPressed(ebiten.KeyH) {
+			g.Camera.MovePosition(-cam_delta, 0)
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyL) {
+			g.Camera.MovePosition(cam_delta, 0)
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyK) {
+			g.Camera.MovePosition(0, -cam_delta)
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyJ) {
+			g.Camera.MovePosition(0, cam_delta)
+		}
 	}
 
 	g.TimerManager.Update()
@@ -239,7 +241,7 @@ func (g *Game) Update() error {
 		addLocalPlayer(g)
 	}
 
-	UpdateCamera(g)
+	UpdateCamera(g, dt)
 
 	return nil
 }
