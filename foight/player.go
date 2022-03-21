@@ -3,7 +3,6 @@ package foight
 import (
 	"game/foight/mixins"
 	"game/foight/net"
-	"game/foight/util"
 	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
@@ -13,9 +12,7 @@ import (
 	"golang.org/x/image/font/opentype"
 	imagecolor "image/color"
 	"log"
-	"math"
 	"math/rand"
-	"strings"
 	"time"
 )
 
@@ -47,25 +44,7 @@ func init() {
 }
 
 type Player struct {
-	*Entity
-
-	Name string
-
-	HP            int32
-	is_invincible bool
-
-	Dx, Dy float64
-	Tx, Ty float64
-
-	Speed         float64
-	ForceModifier float64
-
-	CoolDown       int64
-	last_fire_time int64
-
-	Effects []*Effect
-
-	stunned_until int64
+	*Unit
 
 	mixins.KDA
 
@@ -76,105 +55,46 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 
 	player := &Player{
 
-		Name: name,
-		HP:   DEFAULT_HP,
-
-		Entity: NewEntity(
-			-200,
-			-200,
-			nil,
-			nil,
-
-			_PLAYER_IMAGE,
-		),
-
-		Speed:         1500,
-		ForceModifier: 1,
-
-		CoolDown:       300,
-		last_fire_time: util.TimeNow(),
+		Unit: NewUnit(name, 200, 200, _PLAYER_IMAGE),
 
 		messages: make(chan net.UpdateMessage, 1024),
 	}
 
 	player.Game = g
+	player.Holder = player
 
+	super_preupdate := player.PreUpdateFn
 	player.PreUpdateFn = func(e *Entity, dt float64) {
-		player.UpdateEffects(dt)
 		player.UpdateInputs(dt)
-		player.Entity.PreUpdate(dt)
+		super_preupdate(e, dt)
 	}
-	player.UpdateFn = func(e *Entity, dt float64) {
-		player.Update(dt)
-	}
+
+	super_render := player.RenderFn
 	player.RenderFn = func(e *Entity, screen *ebiten.Image) {
-		e.Render(screen)
-
-		info_hp := strings.Repeat("■", int(player.HP))
-		l := float64(len(player.Name))
-		ll := float64(len(info_hp))
-
-		f := mplusNormalFont
-		text.Draw(screen, player.Name, f, int(player.X-l*4), int(player.Y-62), player.color)
-		text.Draw(screen, info_hp, f, int(player.X-ll*2.5), int(player.Y-42), player.color)
-
-		kda := player.KDA.ToString()
-		lk := float64(len(kda))
-		text.Draw(screen, kda, f, int(player.X-lk*4), int(player.Y+46), player.color)
+		super_render(e, screen)
+		player.renderKda(screen)
 	}
 
-	player.OnDmgReceived = func(from *Entity, dmg int32) {
-		if player.is_invincible {
-			return
-		}
-
-		player.HP -= dmg
-
-		if player.HP <= 0 {
-			player.Respawn()
-			player.DeathCount++
-			bullet, ok := from.Holder.(*Bullet)
-			if !ok {
-				return
-			}
-
-			player, ok := bullet.Issuer.Holder.(*Player)
-			if !ok {
-				return
-			}
-
-			player.KillCount++
-		}
+	player.onDeathFn = func(self *Unit) {
+		player.Respawn()
+		player.DeathCount++
 	}
-	player.Entity.Holder = player
 
 	player.SetColor(color)
 
-	g.AddEntity(player.Entity)
-
-	{ // Physics
-		body := g.Space.AddBody(cp.NewBody(1, cp.INFINITY))
-		body.UserData = player.Entity
-		body.SetVelocityUpdateFunc(func(body *cp.Body, gravity cp.Vector, damping float64, dt float64) {
-			cp.BodyUpdateVelocity(body, gravity, damping*0.9, dt)
-		})
-
-		radius := float64(_PLAYER_IMAGE.Bounds().Dx() / 2)
-		shape := g.Space.AddShape(cp.NewCircle(body, radius, cp.Vector{}))
-		shape.SetElasticity(0.3)
-		shape.SetFriction(0)
-		shape.SetCollisionType(1)
-
-		idx := player.Entity.ID
-		shape.Filter.Group = uint(idx + 1)
-
-		player.Body = body
-		player.Shape = shape
-	}
+	player.Team = player.ID
+	player.Unit.Init(g)
 
 	player.Respawn()
 
 	return player
+}
+
+func (p *Player) renderKda(screen *ebiten.Image) {
+	kda := p.KDA.ToString()
+	lk := float64(len(kda))
+	f := mplusNormalFont
+	text.Draw(screen, kda, f, int(p.X-lk*4), int(p.Y+46), p.color)
 }
 
 func (player *Player) Respawn() {
@@ -199,55 +119,9 @@ func (player *Player) Respawn() {
 func (p *Player) UpdateInputs(dt float64) {
 	p.readMessages()
 
-	if p.IsStunned() {
-		return
-	}
-
-	mod := dt * p.Speed //* 0.2
-
-	tx := p.Dx * mod
-	ty := p.Dy * mod
-
-	impulse := cp.Vector{tx, ty}
-	p.Body.ApplyImpulseAtLocalPoint(impulse, cp.Vector{})
-	//p.Body.SetPosition(p.Body.Position().Add(impulse))
-
 	if p.is_fire_expected() {
 		p.fire()
 	}
-}
-
-func (p *Player) Update(dt float64) {
-	if p.Tx != 0 || p.Ty != 0 {
-		p.Angle = math.Atan2(float64(p.Ty), float64(p.Tx)) + math.Pi/2
-	} else if p.Dx != 0 || p.Dy != 0 {
-		p.Angle = math.Atan2(float64(p.Dy), float64(p.Dx)) + math.Pi/2
-	}
-
-	p.Entity.Update(dt)
-}
-
-func (p *Player) SetInvincible(duration int64) {
-	p.is_invincible = true
-	precolor := p.color
-
-	p.DrawOpts.ColorM.Scale(0.4, 0.4, 0.4, 1)
-
-	iteration := 1
-	interval_id := p.TimeManager.SetInterval(func() {
-		iteration++
-		if iteration%2 == 0 {
-			p.DrawOpts.ColorM.Scale(0.4, 0.4, 0.4, 1)
-		} else {
-			p.SetColor(precolor)
-		}
-	}, 300)
-
-	p.TimeManager.SetTimeout(func() {
-		p.TimeManager.ClearInterval(interval_id)
-		p.is_invincible = false
-		p.SetColor(precolor)
-	}, duration)
 }
 
 func (p *Player) readMessages() {
@@ -295,53 +169,4 @@ func (p *Player) fire() {
 		dir.Mult(p.ForceModifier * 600.).
 			Add(p.Body.Velocity().Mult(1.5)),
 	)
-}
-
-func (player *Player) StunFor(ms int64) {
-	player.stunned_until = util.TimeNow() + ms
-}
-func (player *Player) IsStunned() bool {
-	return util.TimeNow() < player.stunned_until
-}
-
-func (player *Player) UpdateEffects(dt float64) {
-	count := len(player.Effects)
-	row_length := int(math.Round(math.Sqrt(float64(count))))
-
-	for idx, effect := range player.Effects {
-		effect.Update(dt)
-
-		x := idx % row_length
-		y := idx / row_length
-		effect.X, effect.Y = float64(x-row_length/2)*16, float64(y-row_length/2)*16
-	}
-}
-
-func (player *Player) AddEffect(effect *Effect) {
-	player.Effects = append(player.Effects, effect)
-
-	effect.Parent = player.Entity
-
-	if effect.Game != player.Game {
-		player.Game.AddEntity(effect.Entity)
-	}
-}
-
-func (player *Player) RemoveEffect(effect *Effect) {
-	if effect.OnCease != nil {
-		effect.OnCease(effect)
-	}
-
-	for idx, x := range player.Effects {
-		if x == effect {
-			player.Effects = append(player.Effects[:idx], player.Effects[idx+1:]...)
-			break
-		}
-	}
-
-	if effect.Game != nil {
-		effect.RemoveFromGame()
-	}
-	effect.Target = nil
-	effect.Data = nil
 }

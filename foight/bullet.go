@@ -3,18 +3,13 @@ package foight
 import (
 	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/jakecoffman/cp"
 	"log"
 )
 
 var _BULLET_IMG *ebiten.Image
-var img_w_bullet, img_h_bullet float64
 
 func init() {
 	_BULLET_IMG = imagestore.Images["boolit.png"]
-
-	img_w_bullet = float64(_BULLET_IMG.Bounds().Dx())
-	img_h_bullet = float64(_BULLET_IMG.Bounds().Dy())
 }
 
 type Bullet struct {
@@ -27,21 +22,12 @@ type Bullet struct {
 }
 
 func NewBullet(g *Game, x, y float64) *Bullet {
-	space := g.Space
-
-	body := space.AddBody(cp.NewBody(10, 10))
-	body.SetPosition(cp.Vector{x, y})
-
-	shape := space.AddShape(cp.NewCircle(body, img_w_bullet/2, cp.Vector{}))
-	shape.SetElasticity(0.5)
-	shape.SetFriction(0)
-	shape.SetCollisionType(1)
 
 	b := &Bullet{
 		Entity: NewEntity(
 			x, y,
-			body,
-			shape,
+			nil,
+			nil,
 			_BULLET_IMG,
 		),
 
@@ -49,7 +35,14 @@ func NewBullet(g *Game, x, y float64) *Bullet {
 	}
 
 	b.Holder = b
-	body.UserData = b.Entity
+
+	body, shape := AddCirclePhysicsToEntity(g, b.Entity)
+	body.SetMass(10)
+	body.SetMoment(10)
+
+	shape.SetElasticity(1)
+	shape.SetFriction(0)
+	shape.SetCollisionType(1)
 
 	b.Entity.UpdateFn = func(e *Entity, dt float64) {
 		b.Update(dt)

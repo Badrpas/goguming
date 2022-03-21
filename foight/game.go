@@ -61,6 +61,11 @@ func NewGame() *Game {
 		addLocalPlayer(game)
 	}
 
+	//test_unit := NewUnit("[NPC] Kekius", 780, 700, _PLAYER_IMAGE)
+	//test_unit.Team = test_unit.ID
+	//test_unit.Init(game)
+	//AddNpcController(test_unit)
+
 	handler := game.Space.NewCollisionHandler(1, 1)
 	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
 		b1, b2 := arb.Bodies()

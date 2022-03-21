@@ -12,6 +12,8 @@ type Entity struct {
 	ID   uint32
 	Game *Game
 
+	Team uint32
+
 	X, Y  float64
 	Angle float64
 
@@ -55,6 +57,7 @@ func NewEntity(
 	return &Entity{
 		id_counter,
 		nil,
+		0,
 		x, y, 0,
 		nil,
 		body,
@@ -159,7 +162,9 @@ func (e *Entity) SetColor(color imagecolor.Color) {
 }
 
 func (e *Entity) RemoveFromGame() {
-	e.Game.RemoveEntity(e)
+	if e.Game != nil {
+		e.Game.RemoveEntity(e)
+	}
 }
 
 func (e *Entity) RemovePhysics() {
