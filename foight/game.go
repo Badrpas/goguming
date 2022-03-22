@@ -92,11 +92,6 @@ func NewGame() *Game {
 	return game
 }
 
-func initCamera(game *Game) {
-	game.Camera = camera.NewCamera(ScreenWidth, ScreenHeight, 0, 0, 0, 1)
-	game.Camera.SetPosition(ScreenWidth/2, ScreenHeight/2)
-}
-
 func (g *Game) QueueJob(job func() interface{}) chan interface{} {
 	c := make(chan interface{})
 
@@ -248,9 +243,9 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Clear()
+	screen.Fill(color.Black)
 	s := g.Camera.Surface
 	s.Clear()
-	s.Fill(color.Black)
 
 	for _, e := range g.Entities {
 		if e.RenderFn != nil {
@@ -260,13 +255,18 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	g.Camera.Blit(screen)
+	Blit(g.Camera, screen)
+}
+
+func initCamera(game *Game) {
+	game.Camera = camera.NewCamera(ScreenWidth, ScreenHeight, ScreenWidth/2, ScreenHeight/2, 0, 1)
+	SetZoom(game.Camera, 0.5)
 }
 
 func (g *Game) TranslateCamera(opts *ebiten.DrawImageOptions) {
 	c := g.Camera
-	w, h := c.Surface.Size()
-	opts.GeoM.Translate(float64(w)/2, float64(h)/2)
+	w, h := c.Width, c.Height
+	opts.GeoM.Translate(float64(w)/c.Scale/2, float64(h)/c.Scale/2)
 	opts.GeoM.Translate(-c.X, -c.Y)
 }
 
@@ -280,7 +280,12 @@ func (g *Game) indexOfEntity(e *Entity) int32 {
 }
 
 func (g *Game) AddEntity(e *Entity) int32 {
-	var idx int32 = -1
+	var idx = g.indexOfEntity(e)
+	// Duplication guard
+	if idx != -1 {
+		return idx
+	}
+
 	if e.Game != g {
 		e.Game = g
 	}

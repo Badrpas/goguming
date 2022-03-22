@@ -1,8 +1,16 @@
 package foight
 
 import (
+  "github.com/hajimehoshi/ebiten/v2"
   "github.com/jakecoffman/cp"
+  camera "github.com/melonfunction/ebiten-camera"
+  "image"
   "math"
+)
+
+const (
+  ZOOM_MAX = 2.0
+  ZOOM_MIN = 0.7
 )
 
 func UpdateCamera(game *Game, dt float64) {
@@ -64,8 +72,7 @@ func UpdateCamera(game *Game, dt float64) {
     inv_h := h * 1.2 / float64(game.Camera.Height-PADDING)
 
     inv := math.Max(inv_w, inv_h)
-
-    inv = cp.Clamp(inv, 0.7, 3)
+    inv = cp.Clamp(inv, ZOOM_MIN, ZOOM_MAX)
 
     zoom := 1 / inv
 
@@ -77,10 +84,55 @@ func UpdateCamera(game *Game, dt float64) {
       zoom = current_zoom + delta
     }
 
-    game.Camera.SetZoom(zoom)
-    //log.Println(zoom, inv, inv_w, inv_h)
+    SetZoom(game.Camera, zoom)
   }
 }
+
+
+func SetZoom (c *camera.Camera, zoom float64) {
+  c.Scale = zoom
+  if c.Scale <= 0.01 {
+    c.Scale = 0.01
+  }
+  Resize(c, c.Width, c.Height)
+}
+
+var _init_surf = false
+func Resize(c *camera.Camera, w, h int) {
+  c.Width = w
+  c.Height = h
+  var (
+    DEF_WIDTH = ((w) * ZOOM_MAX) //* 2.0
+    DEF_HEIGHT = ((h) * ZOOM_MAX) //* 2.0
+  )
+  if !_init_surf {
+    _init_surf = true
+    c.Surface.Dispose()
+    c.Surface = ebiten.NewImage(DEF_WIDTH, DEF_HEIGHT)
+  }
+}
+
+
+func Blit(c *camera.Camera, screen *ebiten.Image) {
+  op := &ebiten.DrawImageOptions{}
+  w, h := float64(c.Width) / c.Scale, float64(c.Height) / c.Scale
+  cx := float64(w) / 2.0
+  cy := float64(h) / 2.0
+
+  op.GeoM.Translate(-cx, -cy)
+  op.GeoM.Scale(c.Scale, c.Scale)
+  op.GeoM.Translate(cx*c.Scale, cy*c.Scale)
+
+  r := image.Rectangle{
+    Min: image.Point{0, 0},
+    Max: image.Point{int(w)+1, int(h)+1},
+  }
+  subImage := c.Surface.SubImage(r)
+  img := subImage.(*ebiten.Image)
+  screen.DrawImage(img, op)
+}
+
+
 
 func sign(x float64) float64 {
   if x < 0 {
