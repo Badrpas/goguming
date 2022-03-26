@@ -2,6 +2,7 @@ package levelmap
 
 import (
 	"game/foight"
+	"game/foight/pathfind"
 	imagestore "game/img"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
@@ -13,25 +14,30 @@ import (
 )
 
 func LoadToGameTiled(path string, game *foight.Game) error {
-	gameMap, err := tiled.LoadFile(path)
+	file, err := tiled.LoadFile(path)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
-	layer := gameMap.Layers[0]
+	layer := file.Layers[0]
 	tiles := layer.Tiles
 
-	cell_w := float64(gameMap.TileWidth)
-	cell_h := float64(gameMap.TileHeight)
+	game.Nav.SetSize(file.Width, file.Height)
+	game.Nav.SetTileSize(float64(file.TileWidth))
+
+	cell_w := float64(file.TileWidth)
+	cell_h := float64(file.TileHeight)
 
 	for idx, tile := range tiles {
 		if tile.Nil {
 			continue
 		}
 
-		x := cell_w * float64(idx%(gameMap.Width))
-		y := cell_h * float64(idx/(gameMap.Width))
+		idx_x := (idx % (file.Width))
+		idx_y:= (idx / (file.Width))
+		x := cell_w * float64(idx_x)
+		y := cell_h * float64(idx_y)
 
 		img := GetImage(tile)
 		b := foight.NewBlock(x, y, img)
@@ -39,9 +45,14 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 
 		c := uint8(155 + rand.Int()%100)
 		b.SetColor(color.RGBA{c, c, c, 255})
+
+		SetWallAroundPoint(game.Nav, idx_x, idx_y, 1)
 	}
 
-	for _, objectGroup := range gameMap.ObjectGroups {
+	game.Nav.FixHolesWithActorSize(2)
+	game.Nav.Init()
+
+	for _, objectGroup := range file.ObjectGroups {
 		var points = make([]cp.Vector, len(objectGroup.Objects))
 		switch objectGroup.Name {
 		case "player_spawn_points":
@@ -59,6 +70,23 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 	}
 
 	return nil
+}
+
+func SetWallAroundPoint(nav *pathfind.Nav, x, y, radius int) {
+	//nav.SetWall(x, y)
+
+	for i := 0; i <= radius; i++ {
+		nav.SetWall(x+radius, y+i)
+		nav.SetWall(x+radius, y-i)
+		nav.SetWall(x-radius, y+i)
+		nav.SetWall(x-radius, y-i)
+
+		nav.SetWall(x+i, y+radius)
+		nav.SetWall(x-i, y+radius)
+		nav.SetWall(x+i, y-radius)
+		nav.SetWall(x-i, y-radius)
+	}
+
 }
 
 func GetImage(t *tiled.LayerTile) *ebiten.Image {

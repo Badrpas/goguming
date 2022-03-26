@@ -1,4 +1,10 @@
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
+github.com/badrpas/astar v0.0.0-20220325131852-6408e38ee1b4 h1:jNaidHDGQnq+1TSMSAF4ZyGHYU737nRSEltyai5vqAw=
+github.com/badrpas/astar v0.0.0-20220325131852-6408e38ee1b4/go.mod h1:NkhBH3YJKVDecCtXmJyKdztGQRHQMth4cgTvTkmvmM4=
+github.com/badrpas/astar v0.0.0-20220325132213-dcbc2f1ef58a h1:fTXa5Y0VAm43CRMvEwAEV+SUX0kW2pxLwid8+Rgw8No=
+github.com/badrpas/astar v0.0.0-20220325132213-dcbc2f1ef58a/go.mod h1:XJ6llw1ePmFqo4n3oiZLCPPi4NP2OhBTWDM/XlWpWp8=
+github.com/badrpas/astar v0.0.0-20220326103351-7c72e751620d h1:gpaULoQ3Vt+q1I+/zHH5mKE/3FdFRINtdoB/EZFX84c=
+github.com/badrpas/astar v0.0.0-20220326103351-7c72e751620d/go.mod h1:XJ6llw1ePmFqo4n3oiZLCPPi4NP2OhBTWDM/XlWpWp8=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/disintegration/imaging v1.6.2/go.mod h1:44/5580QXChDfwIclfc/PCwrr44amcmDAg8hxG0Ewe4=

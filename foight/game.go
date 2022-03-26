@@ -2,6 +2,7 @@ package foight
 
 import (
 	"flag"
+	"game/foight/pathfind"
 	"game/foight/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
@@ -35,6 +36,7 @@ type Game struct {
 	ItemSpawnPoints   []cp.Vector
 
 	Space *cp.Space
+	Nav *pathfind.Nav
 
 	TimerManager *util.TimeHolder
 
@@ -45,6 +47,7 @@ type Game struct {
 func NewGame() *Game {
 	game := &Game{
 		Space:        cp.NewSpace(),
+		Nav: 					pathfind.NewNav(100, 100),
 		TimerManager: &util.TimeHolder{},
 		queued_jobs:  make(chan func(), 1024),
 	}
@@ -56,15 +59,15 @@ func NewGame() *Game {
 	initItemSpawner(game)
 	initCamera(game)
 
-	log.Println(init_local, *init_local)
 	if *init_local {
 		addLocalPlayer(game)
 	}
 
-	//test_unit := NewUnit("[NPC] Kekius", 780, 700, _PLAYER_IMAGE)
-	//test_unit.Team = test_unit.ID
-	//test_unit.Init(game)
-	//AddNpcController(test_unit)
+	test_unit := NewUnit("[NPC] Kekius", 100, 100, _PLAYER_IMAGE)
+	test_unit.Team = test_unit.ID
+	//test_unit.Speed = 100
+	test_unit.Init(game)
+	AddNpcController(test_unit)
 
 	handler := game.Space.NewCollisionHandler(1, 1)
 	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
@@ -185,6 +188,7 @@ func (g *Game) Update() error {
 		os.Exit(0)
 	}
 
+	// Camera
 	{
 		cam_delta := dt * 100
 		if ebiten.IsKeyPressed(ebiten.KeyH) {
@@ -199,6 +203,8 @@ func (g *Game) Update() error {
 		if ebiten.IsKeyPressed(ebiten.KeyJ) {
 			g.Camera.MovePosition(0, cam_delta)
 		}
+
+		UpdateCamera(g, dt)
 	}
 
 	g.TimerManager.Update()
@@ -236,7 +242,6 @@ func (g *Game) Update() error {
 		addLocalPlayer(g)
 	}
 
-	UpdateCamera(g, dt)
 
 	return nil
 }
@@ -260,7 +265,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func initCamera(game *Game) {
 	game.Camera = camera.NewCamera(ScreenWidth, ScreenHeight, ScreenWidth/2, ScreenHeight/2, 0, 1)
-	SetZoom(game.Camera, 0.5)
+	SetZoom(game.Camera, 0.9)
 }
 
 func (g *Game) TranslateCamera(opts *ebiten.DrawImageOptions) {
