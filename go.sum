@@ -1,10 +1,6 @@
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/badrpas/astar v0.0.0-20220325131852-6408e38ee1b4 h1:jNaidHDGQnq+1TSMSAF4ZyGHYU737nRSEltyai5vqAw=
-github.com/badrpas/astar v0.0.0-20220325131852-6408e38ee1b4/go.mod h1:NkhBH3YJKVDecCtXmJyKdztGQRHQMth4cgTvTkmvmM4=
-github.com/badrpas/astar v0.0.0-20220325132213-dcbc2f1ef58a h1:fTXa5Y0VAm43CRMvEwAEV+SUX0kW2pxLwid8+Rgw8No=
-github.com/badrpas/astar v0.0.0-20220325132213-dcbc2f1ef58a/go.mod h1:XJ6llw1ePmFqo4n3oiZLCPPi4NP2OhBTWDM/XlWpWp8=
-github.com/badrpas/astar v0.0.0-20220326103351-7c72e751620d h1:gpaULoQ3Vt+q1I+/zHH5mKE/3FdFRINtdoB/EZFX84c=
-github.com/badrpas/astar v0.0.0-20220326103351-7c72e751620d/go.mod h1:XJ6llw1ePmFqo4n3oiZLCPPi4NP2OhBTWDM/XlWpWp8=
+github.com/beefsack/go-astar v0.0.0-20200827232313-4ecf9e304482 h1:p4g4uok3+r6Tg6fxXEQUAcMAX/WdK6WhkQW9s0jaT7k=
+github.com/beefsack/go-astar v0.0.0-20200827232313-4ecf9e304482/go.mod h1:Cu3t5VeqE8kXjUBeNXWQprfuaP5UCIc5ggGjgMx9KFc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/disintegration/imaging v1.6.2/go.mod h1:44/5580QXChDfwIclfc/PCwrr44amcmDAg8hxG0Ewe4=
@@ -30,6 +26,8 @@ github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240 h1:dy+DS31tGEGCsZzB45HmJ
 github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240/go.mod h1:3P4UH/k22rXyHIJD2w4h2XMqPX4Of/eySEZq9L6wqc4=
 github.com/jfreymuth/oggvorbis v1.0.3/go.mod h1:1U4pqWmghcoVsCJJ4fRBKv9peUJMBHixthRlBeD6uII=
 github.com/jfreymuth/vorbis v1.0.2/go.mod h1:DoftRo4AznKnShRl1GxiTFCseHr4zR9BN3TWXyuzrqQ=
+github.com/jpierer/astar v0.0.0-20210728145638-e70b1f851b33 h1:kgP0dIQ7yzyc4V8B9GVmc7LTihErXFR+gDLz/mZScao=
+github.com/jpierer/astar v0.0.0-20210728145638-e70b1f851b33/go.mod h1:NkhBH3YJKVDecCtXmJyKdztGQRHQMth4cgTvTkmvmM4=
 github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=

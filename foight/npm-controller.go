@@ -1,198 +1,198 @@
 package foight
 
 import (
-  "game/foight/pathfind"
-  "game/foight/util"
-  "github.com/hajimehoshi/ebiten/v2"
-  "github.com/hajimehoshi/ebiten/v2/inpututil"
-  "github.com/jakecoffman/cp"
-  "github.com/jpierer/astar"
-  "image/color"
+	"game/foight/pathfind"
+	"game/foight/util"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/jakecoffman/cp"
+	"image/color"
 )
 
 type NpcControllerStorage map[*Unit]*NpcController
+
 var NpcControllers NpcControllerStorage
 
 func init() {
-  NpcControllers = NpcControllerStorage{}
+	NpcControllers = NpcControllerStorage{}
 }
 
 type NpcControllerState uint
+
 const (
-  IDLE NpcControllerState = iota
-  MOVE_TO_POINT
+	IDLE NpcControllerState = iota
+	MOVE_TO_POINT
 )
 
 type NpcController struct {
-  state NpcControllerState
+	state NpcControllerState
 
-  target_point cp.Vector
-  next_path_calc int64
+	target_point   cp.Vector
+	next_path_calc int64
 
-  path []pathfind.NavPathNode
+	path []pathfind.NavPathNode
 }
-
 
 func GetNpcController(unit *Unit) *NpcController {
-  return NpcControllers[unit]
+	return NpcControllers[unit]
 }
 func createNpcController(unit *Unit) *NpcController {
-  controller := &NpcController{
-    next_path_calc: util.TimeNow(),
-  }
-  NpcControllers[unit] = controller
-  return controller
+	controller := &NpcController{
+		next_path_calc: util.TimeNow(),
+	}
+	NpcControllers[unit] = controller
+	return controller
 }
 func removeNpcController(unit *Unit) {
-  delete(NpcControllers, unit)
+	delete(NpcControllers, unit)
 }
-
 
 var DrawNpcNavDebug string
 
 func AddNpcController(unit *Unit) {
-  controller := createNpcController(unit)
+	controller := createNpcController(unit)
 
-  on_remove := unit.OnRemove
-  unit.OnRemove = func(entity *Entity) {
-    if on_remove != nil {
-      on_remove(entity)
-    }
-    removeNpcController(unit)
-  }
+	on_remove := unit.OnRemove
+	unit.OnRemove = func(entity *Entity) {
+		if on_remove != nil {
+			on_remove(entity)
+		}
+		removeNpcController(unit)
+	}
 
-  pre_update := unit.PreUpdateFn
-  unit.PreUpdateFn = func(e *Entity, dt float64) {
-    stateUpdate(unit)
+	pre_update := unit.PreUpdateFn
+	unit.PreUpdateFn = func(e *Entity, dt float64) {
+		stateUpdate(unit)
 
-    if pre_update != nil {
-      pre_update(e, dt)
-    } else {
-      unit.PreUpdate(dt)
-    }
+		if pre_update != nil {
+			pre_update(e, dt)
+		} else {
+			unit.PreUpdate(dt)
+		}
 
-    if inpututil.IsKeyJustPressed(ebiten.KeyP) {
-      if DrawNpcNavDebug == "true" {
-        DrawNpcNavDebug = "false"
-      } else {
-        DrawNpcNavDebug = "true"
-      }
-    }
-  }
+		if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+			if DrawNpcNavDebug == "true" {
+				DrawNpcNavDebug = "false"
+			} else {
+				DrawNpcNavDebug = "true"
+			}
+		}
+	}
 
+	render := unit.RenderFn
+	unit.RenderFn = func(e *Entity, screen *ebiten.Image) {
+		if render != nil {
+			render(e, screen)
+		} else {
+			e.Render(screen)
+		}
 
-  render := unit.RenderFn
-  unit.RenderFn = func(e *Entity, screen *ebiten.Image) {
-    if render != nil {
-      render(e, screen)
-    } else {
-      e.Render(screen)
-    }
+		if DrawNpcNavDebug != "true" {
+			return
+		}
 
-    if DrawNpcNavDebug != "true" {
-      return
-    }
+		draw_node := func(node *pathfind.NavTile, c color.Color) {
+			opts := &ebiten.DrawImageOptions{}
+			util.SetDrawOptsColor(opts, c)
+			w, h := _BULLET_IMG.Size()
+			opts.GeoM.Translate(float64(w/-2), float64(h/-2))
+			size := unit.Game.Nav.GetTileSize() / 2
+			opts.GeoM.Scale(0.5, 0.5)
+			opts.GeoM.Translate(size, size)
 
-    draw_node := func(node *astar.Node, c color.Color) {
-      opts := &ebiten.DrawImageOptions{}
-      util.SetDrawOptsColor(opts, c)
-      w,h := _BULLET_IMG.Size()
-      opts.GeoM.Translate(float64(w/-2), float64(h/-2))
-      size := unit.Game.Nav.GetTileSize() / 2
-      opts.GeoM.Scale(0.5, 0.5)
-      opts.GeoM.Translate(size, size)
+			opts.GeoM.Translate(float64(node.X*16)-8, float64(node.Y*16)-8)
+			unit.Game.TranslateCamera(opts)
+			screen.DrawImage(_BULLET_IMG, opts)
+		}
 
-      opts.GeoM.Translate(float64(node.X*16) - 8, float64(node.Y*16) - 8)
-      unit.Game.TranslateCamera(opts)
-      screen.DrawImage(_BULLET_IMG, opts)
-    }
+		for _, node := range unit.Game.Nav.IterateTiles(pathfind.NavTileFilledGap) {
+			draw_node(node, color.RGBA{0, 255, 180, 1})
+		}
+		for _, node := range unit.Game.Nav.IterateTiles(pathfind.NavTileWall) {
+			draw_node(node, color.RGBA{0, 55, 225, 1})
+		}
+		for _, node := range unit.Game.Nav.IterateTiles(pathfind.NavTileEmpty) {
+			draw_node(node, color.RGBA{155, 105, 25, 1})
+		}
 
-    for _, node := range unit.Game.Nav.InvalidNodes {
-      draw_node(&node, color.RGBA{0, 255, 180, 1})
-    }
-    for _, node := range unit.Game.Nav.FixedHoles {
-      draw_node(&node, color.RGBA{0, 55, 225, 1})
-    }
+		for _, node := range controller.path {
+			opts := &ebiten.DrawImageOptions{}
+			util.SetDrawOptsColor(opts, color.RGBA{5, 255, 0, 1})
+			w, h := _BULLET_IMG.Size()
+			opts.GeoM.Translate(float64(w/-2), float64(h/-2))
+			size := unit.Game.Nav.GetTileSize() / 2
+			opts.GeoM.Scale(0.5, 0.5)
+			opts.GeoM.Translate(size, size)
 
-    for _, node := range controller.path {
-      opts := &ebiten.DrawImageOptions{}
-      util.SetDrawOptsColor(opts, color.RGBA{255, 255, 0, 1})
-      w,h := _BULLET_IMG.Size()
-      opts.GeoM.Translate(float64(w/-2), float64(h/-2))
-      size := unit.Game.Nav.GetTileSize() / 2
-      opts.GeoM.Scale(0.5, 0.5)
-      opts.GeoM.Translate(size, size)
+			opts.GeoM.Translate(node.X, node.Y)
+			unit.Game.TranslateCamera(opts)
+			screen.DrawImage(_BULLET_IMG, opts)
+		}
 
-      opts.GeoM.Translate(node.X, node.Y)
-      unit.Game.TranslateCamera(opts)
-      screen.DrawImage(_BULLET_IMG, opts)
-    }
+		opts := &ebiten.DrawImageOptions{}
+		util.SetDrawOptsColor(opts, color.RGBA{255, 0, 0, 1})
+		opts.GeoM.Scale(0.5, 0.5)
 
-
-    opts := &ebiten.DrawImageOptions{}
-    util.SetDrawOptsColor(opts, color.RGBA{255, 0, 0, 1})
-    opts.GeoM.Scale(0.5, 0.5)
-
-    opts.GeoM.Translate(controller.target_point.X, controller.target_point.Y)
-    unit.Game.TranslateCamera(opts)
-    screen.DrawImage(_BULLET_IMG, opts)
-  }
+		opts.GeoM.Translate(controller.target_point.X, controller.target_point.Y)
+		unit.Game.TranslateCamera(opts)
+		screen.DrawImage(_BULLET_IMG, opts)
+	}
 }
 
 func stateUpdate(unit *Unit) {
-  controller := GetNpcController(unit)
+	controller := GetNpcController(unit)
 
-  switch controller.state {
-  case IDLE:
-    // find point to move to
-    var closest *Player = nil
-    for _, entity := range unit.Game.Entities {
-      if player, ok := entity.Holder.(*Player); ok {
-        if closest == nil || closest.GetPosition().Distance(unit.GetPosition()) > unit.GetPosition().DistanceSq(entity.GetPosition()) {
-          closest = player
-        }
-      }
-    }
+	switch controller.state {
+	case IDLE:
+		// find point to move to
+		var closest *Player = nil
+		for _, entity := range unit.Game.Entities {
+			if player, ok := entity.Holder.(*Player); ok {
+				if closest == nil || closest.GetPosition().Distance(unit.GetPosition()) > unit.GetPosition().DistanceSq(entity.GetPosition()) {
+					closest = player
+				}
+			}
+		}
 
-    if closest == nil {
-      return
-    }
+		if closest == nil {
+			return
+		}
 
-    if controller.next_path_calc <= util.TimeNow() {
-      path := unit.Game.Nav.FindVec(unit.GetPosition(), closest.GetPosition())
-      if len(path) == 0 {
-        return
-      }
-      node := path[0]
-      if node.Vector.Distance(unit.GetPosition()) < 30 {
-        if len(path) > 1 {
-          node = path[1]
-        } else {
-          return
-        }
-      }
+		if controller.next_path_calc <= util.TimeNow() {
+			path := unit.Game.Nav.FindVec(unit.GetPosition(), closest.GetPosition())
+			if len(path) == 0 {
+				return
+			}
+			node := path[0]
+			if node.Vector.Distance(unit.GetPosition()) < 30 {
+				if len(path) > 1 {
+					node = path[1]
+				} else {
+					return
+				}
+			}
 
-      const PATH_CALC_INTERVAL = 100
-      controller.next_path_calc = util.TimeNow() + PATH_CALC_INTERVAL
-      controller.target_point = node.Vector
-      controller.path = path
+			const PATH_CALC_INTERVAL = 100
+			controller.next_path_calc = util.TimeNow() + PATH_CALC_INTERVAL
+			controller.target_point = node.Vector
+			controller.path = path
 
-      controller.state = MOVE_TO_POINT
-    }
+			controller.state = MOVE_TO_POINT
+		}
 
-    return
+		return
 
-  case MOVE_TO_POINT:
-    // add impulse in direction
-    position := unit.Body.Position()
-    diff := controller.target_point.Sub(position)
-    if diff.Length() < 30 {
-      controller.state = IDLE
-      return
-    }
+	case MOVE_TO_POINT:
+		// add impulse in direction
+		position := unit.Body.Position()
+		diff := controller.target_point.Sub(position)
+		if diff.Length() < 30 {
+			controller.state = IDLE
+			return
+		}
 
-    dir := diff.Normalize()
-    unit.Dx, unit.Dy = dir.X, dir.Y
-  }
+		dir := diff.Normalize()
+		unit.Dx, unit.Dy = dir.X, dir.Y
+	}
 
 }

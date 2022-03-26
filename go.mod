@@ -3,6 +3,7 @@ module game
 go 1.17
 
 require (
+	github.com/beefsack/go-astar v0.0.0-20200827232313-4ecf9e304482
 	github.com/gorilla/websocket v1.5.0
 	github.com/hajimehoshi/ebiten/v2 v2.2.5
 	github.com/jakecoffman/cp v1.1.0
@@ -11,8 +12,6 @@ require (
 	github.com/melonfunction/ebiten-camera v0.0.0-20220108183711-5c8a2c471904
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
 )
-
-replace github.com/jpierer/astar v0.0.0-20210728145638-e70b1f851b33 => github.com/badrpas/astar v0.0.0-20220326103351-7c72e751620d
 
 require (
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20210727001814-0db043d8d5be // indirect
