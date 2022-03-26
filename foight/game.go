@@ -2,6 +2,7 @@ package foight
 
 import (
 	"flag"
+	"game/foight/debug"
 	"game/foight/pathfind"
 	"game/foight/util"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -36,7 +37,7 @@ type Game struct {
 	ItemSpawnPoints   []cp.Vector
 
 	Space *cp.Space
-	Nav *pathfind.Nav
+	Nav   *pathfind.Nav
 
 	TimerManager *util.TimeHolder
 
@@ -47,7 +48,7 @@ type Game struct {
 func NewGame() *Game {
 	game := &Game{
 		Space:        cp.NewSpace(),
-		Nav: 					pathfind.NewNav(100, 100),
+		Nav:          pathfind.NewNav(100, 100),
 		TimerManager: &util.TimeHolder{},
 		queued_jobs:  make(chan func(), 1024),
 	}
@@ -242,7 +243,6 @@ func (g *Game) Update() error {
 		addLocalPlayer(g)
 	}
 
-
 	return nil
 }
 
@@ -258,6 +258,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		} else {
 			e.Render(s)
 		}
+	}
+
+	for _, point := range debug.Points {
+		opts := &ebiten.DrawImageOptions{}
+		w, h := _BULLET_IMG.Size()
+		opts.GeoM.Translate(float64(w/-2), float64(h/-2))
+		opts.GeoM.Translate(point.X, point.Y)
+		g.TranslateCamera(opts)
+		s.DrawImage(_BULLET_IMG, opts)
 	}
 
 	Blit(g.Camera, screen)

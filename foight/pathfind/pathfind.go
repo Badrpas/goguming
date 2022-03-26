@@ -22,7 +22,9 @@ func (nav *Nav) Init() error {
 		start_time := util.TimeNow()
 		defer func() {
 			total := util.TimeNow() - start_time
-			log.Println(total)
+			if total > 40 {
+				log.Println(total)
+			}
 		}()
 
 		if nav.IsWallAt(tx, ty) {
@@ -42,21 +44,16 @@ func (nav *Nav) Init() error {
 			c := p[i].(*NavTile)
 			next := p[i+1].(*NavTile)
 
-			path[idx].X = float64(c.X)*nav.tile_size - nav.tile_size/2
-			path[idx].Y = float64(c.Y)*nav.tile_size - nav.tile_size/2
-			idx++
-			continue
-
 			if next.X != prev.X && next.Y != prev.Y {
-				path[idx].X = float64(c.X)*nav.tile_size - nav.tile_size/2
-				path[idx].Y = float64(c.Y)*nav.tile_size - nav.tile_size/2
+				path[idx].X = float64(c.X)*nav.tile_size + nav.tile_size/2
+				path[idx].Y = float64(c.Y)*nav.tile_size + nav.tile_size/2
 				idx++
 			}
 
 			// last
 			if i == l-2 {
-				path[idx].X = float64(next.X)*nav.tile_size - nav.tile_size/2
-				path[idx].Y = float64(next.Y)*nav.tile_size - nav.tile_size/2
+				path[idx].X = float64(next.X)*nav.tile_size + nav.tile_size/2
+				path[idx].Y = float64(next.Y)*nav.tile_size + nav.tile_size/2
 				idx++
 			}
 		}

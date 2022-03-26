@@ -4,6 +4,7 @@ import (
 	"game/foight/pathfind"
 	"game/foight/util"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/jakecoffman/cp"
 	"image/color"
@@ -96,9 +97,9 @@ func AddNpcController(unit *Unit) {
 			util.SetDrawOptsColor(opts, c)
 			w, h := _BULLET_IMG.Size()
 			opts.GeoM.Translate(float64(w/-2), float64(h/-2))
-			size := unit.Game.Nav.GetTileSize() / 2
 			opts.GeoM.Scale(0.5, 0.5)
-			opts.GeoM.Translate(size, size)
+			//size := unit.Game.Nav.GetTileSize() / 2
+			//opts.GeoM.Translate(size, size)
 
 			opts.GeoM.Translate(float64(node.X*16)-8, float64(node.Y*16)-8)
 			unit.Game.TranslateCamera(opts)
@@ -120,9 +121,9 @@ func AddNpcController(unit *Unit) {
 			util.SetDrawOptsColor(opts, color.RGBA{5, 255, 0, 1})
 			w, h := _BULLET_IMG.Size()
 			opts.GeoM.Translate(float64(w/-2), float64(h/-2))
-			size := unit.Game.Nav.GetTileSize() / 2
 			opts.GeoM.Scale(0.5, 0.5)
-			opts.GeoM.Translate(size, size)
+			//size := unit.Game.Nav.GetTileSize() / 2
+			//opts.GeoM.Translate(size, size)
 
 			opts.GeoM.Translate(node.X, node.Y)
 			unit.Game.TranslateCamera(opts)
@@ -131,11 +132,22 @@ func AddNpcController(unit *Unit) {
 
 		opts := &ebiten.DrawImageOptions{}
 		util.SetDrawOptsColor(opts, color.RGBA{255, 0, 0, 1})
+		w, h := _BULLET_IMG.Size()
+		opts.GeoM.Translate(float64(w/-2), float64(h/-2))
 		opts.GeoM.Scale(0.5, 0.5)
+		//size := unit.Game.Nav.GetTileSize() / 2
+		//opts.GeoM.Translate(size, size)
 
 		opts.GeoM.Translate(controller.target_point.X, controller.target_point.Y)
 		unit.Game.TranslateCamera(opts)
 		screen.DrawImage(_BULLET_IMG, opts)
+
+		//dir := cp.Vector{unit.Dx, unit.Dy}.Mult(20)
+
+		from := TranslatePosFromCamera(unit.Game.Camera, unit.GetPosition())
+		to := TranslatePosFromCamera(unit.Game.Camera, controller.target_point)
+		//debug.DrawLine(screen, from, to, color.White)
+		ebitenutil.DrawLine(screen, from.X, from.Y, to.X, to.Y, color.White)
 	}
 }
 
@@ -167,12 +179,13 @@ func stateUpdate(unit *Unit) {
 			if node.Vector.Distance(unit.GetPosition()) < 30 {
 				if len(path) > 1 {
 					node = path[1]
+					path = path[1:]
 				} else {
 					return
 				}
 			}
 
-			const PATH_CALC_INTERVAL = 100
+			const PATH_CALC_INTERVAL = 1500
 			controller.next_path_calc = util.TimeNow() + PATH_CALC_INTERVAL
 			controller.target_point = node.Vector
 			controller.path = path
@@ -186,8 +199,21 @@ func stateUpdate(unit *Unit) {
 		// add impulse in direction
 		position := unit.Body.Position()
 		diff := controller.target_point.Sub(position)
-		if diff.Length() < 30 {
+
+		if controller.next_path_calc <= util.TimeNow() {
 			controller.state = IDLE
+		}
+
+		if diff.Length() < 17 {
+			if len(controller.path) > 1 {
+				controller.path = controller.path[1:]
+				controller.target_point = controller.path[0].Vector
+				return
+			} else {
+				controller.state = IDLE
+				unit.Dx, unit.Dy = 0, 0
+			}
+
 			return
 		}
 

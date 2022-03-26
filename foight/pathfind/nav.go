@@ -1,6 +1,8 @@
 package pathfind
 
-import "math"
+import (
+	"game/foight/util"
+)
 
 type Nav struct {
 	Width, Height int
@@ -85,7 +87,7 @@ func (nav *Nav) FixHolesWithActorSize(size int) {
 			for i := 1; i <= size; i++ {
 				neighbors := nav.findNeighborsInRadius(node, i)
 				for _, neighbor := range neighbors {
-					for _, p := range makeline(x, y, neighbor.X, neighbor.Y) {
+					for _, p := range util.Makeline(x, y, neighbor.X, neighbor.Y) {
 						if nav.GetTileAt(p.X, p.Y).Type == NavTileEmpty {
 							nav.SetGapWall(p.X, p.Y)
 						}
@@ -93,58 +95,6 @@ func (nav *Nav) FixHolesWithActorSize(size int) {
 				}
 			}
 		}
-	}
-}
-
-type point NavTilePos
-
-func makeline(x1, y1, x2, y2 int) []point {
-	if x1 > x2 {
-		x1, x2 = x2, x1
-		y1, y2 = y2, y1
-	}
-
-	dx := x2 - x1
-	dy := y2 - y1
-	adx, ady := math.Abs(float64(dx)), math.Abs(float64(dy))
-
-	i := 0
-	if adx > ady {
-		if x1 > x2 {
-			x1, x2 = x2, x1
-			y1, y2 = y2, y1
-		}
-
-		dx = x2 - x1
-		dy = y2 - y1
-
-		max := int(math.Max(float64(dx), float64(dy)))
-		points := make([]point, max+1)
-
-		for x := x1; x <= x2; x++ {
-			points[i] = point{X: x, Y: y1 + dy*(x-x1)/dx}
-			i++
-		}
-
-		return points
-	} else {
-		if y1 > y2 {
-			x1, x2 = x2, x1
-			y1, y2 = y2, y1
-		}
-
-		dx = x2 - x1
-		dy = y2 - y1
-
-		max := int(math.Max(float64(dx), float64(dy)))
-		points := make([]point, max+1)
-
-		for y := y1; y <= y2; y++ {
-			points[i] = point{X: x1 + dx*(y-y1)/dy, Y: y}
-			i++
-		}
-
-		return points
 	}
 }
 
