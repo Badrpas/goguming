@@ -1,8 +1,6 @@
 package pathfind
 
-import (
-	"game/foight/util"
-)
+import "game/foight/util"
 
 type Nav struct {
 	Width, Height int
@@ -82,23 +80,41 @@ func (nav *Nav) SetTileAt(x, y int, t NavTileType) *NavTile {
 }
 
 func (nav *Nav) FixHolesWithActorSize(size int) {
+	gap_tiles := map[*NavTile]bool{}
+
 	for x, row := range nav.tiles {
 		for y, node := range row {
-			for i := 1; i <= size; i++ {
-				neighbors := nav.findNeighborsInRadius(node, i)
-				for _, neighbor := range neighbors {
-					for _, p := range util.Makeline(x, y, neighbor.X, neighbor.Y) {
-						if nav.GetTileAt(p.X, p.Y).Type == NavTileEmpty {
-							nav.SetGapWall(p.X, p.Y)
+			if x == 0 && y == 0 {
+			}
+			if node == nil || node.Type != NavTileWall {
+				continue
+			}
+
+			//for i := 1; i <= size; i++ {
+			neighbors := nav.findNeighborsInRadius(node, 2)
+
+			for _, neighbor := range neighbors {
+				//p := neighbor
+				for _, p := range util.Makeline(x, y, neighbor.X, neighbor.Y) {
+					tile := nav.GetTileAtSafe(p.X, p.Y)
+					if tile == nil || tile.Type == NavTileEmpty {
+						if tile == nil {
+							tile = nav.GetTileAt(p.X, p.Y)
 						}
+						gap_tiles[tile] = true
 					}
 				}
+				//}
 			}
 		}
 	}
+
+	for p, _ := range gap_tiles {
+		nav.SetGapWall(p.X, p.Y)
+	}
 }
 
-func (nav *Nav) findNeighborsInRadius(node *NavTile, radius int) []*NavTile {
+func (nav *Nav) findNeighborsInRadius(tile *NavTile, radius int) []*NavTile {
 	check := func(x, y int) (bool, *NavTile) {
 		if nav.tiles[x] == nil {
 			return false, nil
@@ -109,37 +125,22 @@ func (nav *Nav) findNeighborsInRadius(node *NavTile, radius int) []*NavTile {
 		return false, nil
 	}
 
-	x, y := node.X, node.Y
+	x, y := tile.X, tile.Y
 	nodes := []*NavTile{}
+	i := 0
 
-	for i := 0; i <= radius; i++ {
+	if ok, node := check(x+radius, y+i); ok {
+		nodes = append(nodes, node)
+	}
+	if ok, node := check(x-radius, y+i); ok {
+		nodes = append(nodes, node)
+	}
 
-		if ok, node := check(x+radius, y+i); ok {
-			nodes = append(nodes, node)
-		}
-		if ok, node := check(x+radius, y-i); ok {
-			nodes = append(nodes, node)
-		}
-		if ok, node := check(x-radius, y+i); ok {
-			nodes = append(nodes, node)
-		}
-		if ok, node := check(x-radius, y-i); ok {
-			nodes = append(nodes, node)
-		}
-
-		if ok, node := check(x+i, y+radius); ok {
-			nodes = append(nodes, node)
-		}
-		if ok, node := check(x-i, y+radius); ok {
-			nodes = append(nodes, node)
-		}
-		if ok, node := check(x+i, y-radius); ok {
-			nodes = append(nodes, node)
-		}
-		if ok, node := check(x-i, y-radius); ok {
-			nodes = append(nodes, node)
-		}
-
+	if ok, node := check(x+i, y+radius); ok {
+		nodes = append(nodes, node)
+	}
+	if ok, node := check(x+i, y-radius); ok {
+		nodes = append(nodes, node)
 	}
 
 	return nodes

@@ -98,8 +98,8 @@ func AddNpcController(unit *Unit) {
 			w, h := _BULLET_IMG.Size()
 			opts.GeoM.Translate(float64(w/-2), float64(h/-2))
 			opts.GeoM.Scale(0.5, 0.5)
-			//size := unit.Game.Nav.GetTileSize() / 2
-			//opts.GeoM.Translate(size, size)
+			size := unit.Game.Nav.GetTileSize() / 2
+			opts.GeoM.Translate(size, size)
 
 			opts.GeoM.Translate(float64(node.X*16)-8, float64(node.Y*16)-8)
 			unit.Game.TranslateCamera(opts)
