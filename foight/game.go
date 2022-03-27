@@ -64,11 +64,20 @@ func NewGame() *Game {
 		addLocalPlayer(game)
 	}
 
-	test_unit := NewUnit("[NPC] Kekius", 80, 70, _PLAYER_IMAGE)
-	test_unit.Team = test_unit.ID
-	//test_unit.Speed = 100
-	test_unit.Init(game)
-	AddNpcController(test_unit)
+	add_test_unit_at := func(pos cp.Vector) {
+		test_unit := NewUnit("[NPC] Kekius", pos.X, pos.Y, _PLAYER_IMAGE)
+		test_unit.Team = test_unit.ID
+		test_unit.SetColor(color.RGBA{255, 0, 200, 255})
+		//test_unit.Speed = 100
+		test_unit.Init(game)
+		test_unit.Weapon.CoolDown += test_unit.Weapon.CoolDown / 10 * 7
+		AddNpcController(test_unit)
+	}
+
+	add_test_unit_at(cp.Vector{60, 60})
+	add_test_unit_at(cp.Vector{1060, 60})
+	add_test_unit_at(cp.Vector{60, 960})
+	add_test_unit_at(cp.Vector{1260, 960})
 
 	handler := game.Space.NewCollisionHandler(1, 1)
 	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {

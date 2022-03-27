@@ -95,7 +95,7 @@ func (e *Entity) PreUpdate(dt float64) {
 
 func (e *Entity) Update(dt float64) {
 	if e.Game == nil {
-		log.Println("Got Entity.Update() without .Game being present")
+		log.Println("Got Holder.Update() without .Game being present")
 		return
 	}
 	e.TimeManager.Update()

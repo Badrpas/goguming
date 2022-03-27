@@ -129,13 +129,12 @@ func init() {
 			},
 			OnApply: func(e *Effect) {
 				player := e.Target
-				delta := player.CoolDown / 2
-				player.CoolDown -= delta
+				delta := player.Weapon.CoolDown / 2
+				player.Weapon.CoolDown -= delta
 
-				e.Data = delta
-			},
-			OnCease: func(e *Effect) {
-				e.Target.CoolDown += e.Data.(int64)
+				e.OnCease = func(e *Effect) {
+					player.Weapon.CoolDown += delta
+				}
 			},
 		},
 

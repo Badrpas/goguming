@@ -170,6 +170,12 @@ func stateUpdate(unit *Unit) {
 	if controller.target_entity != nil {
 		if isInLos(unit.Entity, controller.target_entity, unit.Game.Nav) {
 			controller.desired_pos = controller.target_entity.GetPosition()
+
+			diff := controller.target_entity.GetPosition().Sub(unit.GetPosition())
+			dir := diff.Normalize()
+			unit.Tx, unit.Ty = dir.X, dir.Y
+
+			updateAttack(unit, controller)
 		}
 	}
 
@@ -234,6 +240,7 @@ func recalculateUnitPath(unit *Unit, controller *NpcController, target cp.Vector
 	if len(path) == 0 {
 		return
 	}
+
 	node := path[0]
 	if node.Vector.Distance(unit.GetPosition()) < 30 {
 		if len(path) > 1 {
@@ -251,17 +258,22 @@ func recalculateUnitPath(unit *Unit, controller *NpcController, target cp.Vector
 
 }
 
-func isInLos(e1, e2 *Entity, nav *pathfind.Nav) bool {
-	size := nav.GetTileSize()
-	pos1 := e1.GetPosition().Mult(1 / size)
-	pos2 := e2.GetPosition().Mult(1 / size)
-	line := util.Makeline(int(pos1.X), int(pos1.Y), int(pos2.X), int(pos2.Y))
+func updateAttack(unit *Unit, controller *NpcController) {
+	if controller.target_entity == nil {
+		return
+	}
 
-	for _, point := range line {
-		if tile := nav.GetTileAt(point.X, point.Y); tile != nil && tile.Type == pathfind.NavTileWall {
-			return false
+	_, ok := controller.target_entity.Holder.(*Unit)
+	if !ok {
+		_, ok = controller.target_entity.Holder.(*Player)
+		if !ok {
+			return
 		}
 	}
 
-	return true
+	if unit.Weapon == nil || !unit.Weapon.IsReady() {
+		return
+	}
+
+	unit.Fire()
 }

@@ -14,7 +14,6 @@ import (
 	imagecolor "image/color"
 	"log"
 	"math/rand"
-	"time"
 )
 
 var (
@@ -98,7 +97,7 @@ func (p *Player) renderKda(screen *ebiten.Image) {
 	opts := &ebiten.DrawImageOptions{}
 	util.SetDrawOptsColor(opts, p.color)
 
-	opts.GeoM.Translate((p.X-lk*4), (p.Y+46))
+	opts.GeoM.Translate((p.X - lk*4), (p.Y + 46))
 	p.Game.TranslateCamera(opts)
 	text.DrawWithOptions(screen, kda, f, opts)
 }
@@ -126,7 +125,7 @@ func (p *Player) UpdateInputs(dt float64) {
 	p.readMessages()
 
 	if p.is_fire_expected() {
-		p.fire()
+		p.Fire()
 	}
 }
 
@@ -149,30 +148,6 @@ func (p *Player) applyUpdateMessage(um *net.UpdateMessage) {
 }
 
 func (p *Player) is_fire_expected() bool {
-	cooldownExpired := (time.Now().UnixMilli() - p.last_fire_time) > p.CoolDown
 	triggerDown := (p.Tx*p.Tx + p.Ty*p.Ty) > 0.4
-	return cooldownExpired && triggerDown
-}
-
-func (p *Player) fire() {
-	p.last_fire_time = time.Now().UnixMilli()
-
-	b := NewBullet(p.Game, p.X, p.Y)
-	b.Shape.Filter.Group = p.Shape.Filter.Group
-	b.DrawOpts.ColorM = p.DrawOpts.ColorM
-	b.Lifespan = 800
-	b.Issuer = p.Entity
-	b.on_dmg_dealt = func(b *Bullet, to *Entity) {
-		p.AttacksConnectedCount++
-		b.Entity.RemoveFromGame()
-	}
-
-	p.Game.AddEntity(b.Entity)
-
-	dir := cp.Vector{p.Tx, p.Ty}.Normalize()
-
-	b.Body.SetVelocityVector(
-		dir.Mult(p.ForceModifier * 600.).
-			Add(p.Body.Velocity().Mult(1.5)),
-	)
+	return triggerDown
 }
