@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"log"
 	"math/rand"
+	"strconv"
 	"strings"
 )
 
@@ -35,7 +36,7 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 		}
 
 		idx_x := (idx % (file.Width))
-		idx_y:= (idx / (file.Width))
+		idx_y := (idx / (file.Width))
 		x := cell_w * float64(idx_x)
 		y := cell_h * float64(idx_y)
 
@@ -53,23 +54,74 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 	game.Nav.Init()
 
 	for _, objectGroup := range file.ObjectGroups {
-		var points = make([]cp.Vector, len(objectGroup.Objects))
 		switch objectGroup.Name {
 		case "player_spawn_points":
-			game.PlayerSpawnPoints = points
+			game.PlayerSpawnPoints = CollectPositions(objectGroup)
 		case "item_spawn_points":
-			game.ItemSpawnPoints = points
+			game.ItemSpawnPoints = CollectPositions(objectGroup)
+
+		case "npc_spawn_info":
+			spawn_info := CollectNpcInfos(objectGroup)
+			for _, info := range spawn_info {
+				game.SpawnNpc(info)
+			}
+
 		default:
 			log.Println("Unknown object group name", objectGroup.Name)
 			continue
 		}
 
-		for i, info := range objectGroup.Objects {
-			points[i] = cp.Vector{info.X, info.Y}
-		}
 	}
 
 	return nil
+}
+
+func CollectNpcInfos(group *tiled.ObjectGroup) []*foight.NpcSpawnInfo {
+	infos := make([]*foight.NpcSpawnInfo, len(group.Objects))
+
+	for idx, object := range group.Objects {
+		info := &foight.NpcSpawnInfo{
+			Pos:    cp.Vector{object.X, object.Y},
+			Name:   object.Name,
+			Weapon: "default",
+			Color:  color.White,
+			HP:     5,
+			Team:   100,
+		}
+
+		for _, property := range object.Properties {
+			val := property.Value
+			switch property.Name {
+			case "color":
+				r, _ := strconv.ParseUint(val[3:5], 16, 8)
+				g, _ := strconv.ParseUint(val[5:7], 16, 8)
+				b, _ := strconv.ParseUint(val[7:9], 16, 8)
+				info.Color = color.RGBA{uint8(r), uint8(g), uint8(b), 255}
+			case "weapon":
+				info.Weapon = val
+			case "name":
+				info.Name = val
+			case "hp":
+				info.HP, _ = strconv.Atoi(val)
+			case "team":
+				info.Team, _ = strconv.Atoi(val)
+			}
+		}
+
+		infos[idx] = info
+	}
+
+	return infos
+}
+
+func CollectPositions(objectGroup *tiled.ObjectGroup) []cp.Vector {
+	points := make([]cp.Vector, len(objectGroup.Objects))
+
+	for i, info := range objectGroup.Objects {
+		points[i] = cp.Vector{info.X, info.Y}
+	}
+
+	return points
 }
 
 func SetWallAroundPoint(nav *pathfind.Nav, x, y, radius int) {

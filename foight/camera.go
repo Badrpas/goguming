@@ -14,7 +14,6 @@ const (
 )
 
 func UpdateCamera(game *Game, dt float64) {
-	return
 	var players []*Entity
 	for _, entity := range game.Entities {
 		_, ok := entity.Holder.(*Player)

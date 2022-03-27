@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objecttypes>
+ <objecttype name="NPC_Enemy" color="#a43716">
+  <property name="color" type="color" default="#ffd113e2"/>
+  <property name="hp" type="int" default="5"/>
+  <property name="weapon" type="string" default="default"/>
+ </objecttype>
+</objecttypes>

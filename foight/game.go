@@ -35,6 +35,7 @@ type Game struct {
 
 	PlayerSpawnPoints []cp.Vector
 	ItemSpawnPoints   []cp.Vector
+	NpcSpawnInfo      []*NpcSpawnInfo
 
 	Space *cp.Space
 	Nav   *pathfind.Nav
@@ -43,6 +44,15 @@ type Game struct {
 
 	queued_jobs    chan func()
 	removal_locked bool
+}
+
+type NpcSpawnInfo struct {
+	Pos    cp.Vector
+	Name   string
+	Weapon string
+	Color  color.Color
+	HP     int
+	Team   int
 }
 
 func NewGame() *Game {
@@ -75,9 +85,9 @@ func NewGame() *Game {
 	}
 
 	add_test_unit_at(cp.Vector{60, 60})
-	add_test_unit_at(cp.Vector{1060, 60})
-	add_test_unit_at(cp.Vector{60, 960})
-	add_test_unit_at(cp.Vector{1260, 960})
+	//add_test_unit_at(cp.Vector{1060, 60})
+	//add_test_unit_at(cp.Vector{60, 960})
+	//add_test_unit_at(cp.Vector{1260, 960})
 
 	handler := game.Space.NewCollisionHandler(1, 1)
 	handler.BeginFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
@@ -103,6 +113,26 @@ func NewGame() *Game {
 	}
 
 	return game
+}
+
+func (g *Game) SpawnNpc(info *NpcSpawnInfo) *Unit {
+	name := info.Name
+	npc := NewUnit(name, info.Pos.X, info.Pos.Y, _PLAYER_IMAGE)
+	if info.Team == -1 {
+		npc.Team = npc.ID
+	} else {
+		npc.Team = uint32(info.Team)
+	}
+
+	npc.SetColor(info.Color)
+	npc.HP = int32(info.HP)
+	//npc.Speed = 100
+
+	npc.Init(g)
+	npc.Weapon.CoolDown += npc.Weapon.CoolDown / 10 * 5
+	AddNpcController(npc)
+
+	return npc
 }
 
 func (g *Game) QueueJob(job func() interface{}) chan interface{} {
@@ -139,7 +169,7 @@ func initItemSpawner(game *Game) {
 	storage_idx := 0
 
 	get_next_point_idx := func() int {
-		point_count := len(game.PlayerSpawnPoints)
+		point_count := len(game.ItemSpawnPoints)
 		spawn_idx := 0
 	Outer:
 		for i := 0; i < l*2; //goland:noinspection GoUnreachableCode
@@ -160,8 +190,12 @@ func initItemSpawner(game *Game) {
 	}
 
 	game.TimerManager.SetInterval(func() {
+		if len(game.ItemSpawnPoints) == 0 {
+			return
+		}
+
 		if l > 0 {
-			point := game.PlayerSpawnPoints[get_next_point_idx()]
+			point := game.ItemSpawnPoints[get_next_point_idx()]
 			ctor := ItemConstructors[rand.Int()%len(ItemConstructors)]
 			item := ctor(point)
 			item.Init(game)
