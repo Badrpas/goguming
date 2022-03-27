@@ -168,7 +168,7 @@ func stateUpdate(unit *Unit) {
 		for _, entity := range unit.Game.Entities {
 			if player, ok := entity.Holder.(*Player); ok {
 				d := unit.GetPosition().Distance(entity.GetPosition())
-				if distance > d {
+				if distance > d && isInLos(unit.Entity, entity, unit.Game.Nav) {
 					closest = player
 					distance = d
 				}
@@ -230,4 +230,19 @@ func stateUpdate(unit *Unit) {
 		unit.Dx, unit.Dy = dir.X, dir.Y
 	}
 
+}
+
+func isInLos(unit1, unit2 *Entity, nav *pathfind.Nav) bool {
+	size := nav.GetTileSize()
+	pos1 := unit1.GetPosition().Mult(1 / size)
+	pos2 := unit2.GetPosition().Mult(1 / size)
+	line := util.Makeline(int(pos1.X), int(pos1.Y), int(pos2.X), int(pos2.Y))
+
+	for _, point := range line {
+		if tile := nav.GetTileAt(point.X, point.Y); tile != nil && tile.Type == pathfind.NavTileWall {
+			return false
+		}
+	}
+
+	return true
 }
