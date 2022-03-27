@@ -64,7 +64,7 @@ func NewGame() *Game {
 		addLocalPlayer(game)
 	}
 
-	test_unit := NewUnit("[NPC] Kekius", 100, 100, _PLAYER_IMAGE)
+	test_unit := NewUnit("[NPC] Kekius", 80, 70, _PLAYER_IMAGE)
 	test_unit.Team = test_unit.ID
 	//test_unit.Speed = 100
 	test_unit.Init(game)

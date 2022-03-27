@@ -36,8 +36,12 @@ func (nav *Nav) Init() error {
 		}
 
 		l := len(p)
-		path := make([]NavPathNode, l)
+		path := make([]NavPathNode, l+1)
 		idx := 0
+
+		path[idx].X = float64(tx)*nav.tile_size + nav.tile_size/2
+		path[idx].Y = float64(ty)*nav.tile_size + nav.tile_size/2
+		idx++
 
 		for i := 1; i < l-1; i++ {
 			prev := p[i-1].(*NavTile)
