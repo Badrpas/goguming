@@ -70,7 +70,7 @@ func NewGame() *Game {
 		test_unit.SetColor(color.RGBA{255, 0, 200, 255})
 		//test_unit.Speed = 100
 		test_unit.Init(game)
-		test_unit.Weapon.CoolDown += test_unit.Weapon.CoolDown / 10 * 7
+		test_unit.Weapon.CoolDown += test_unit.Weapon.CoolDown / 10 * 5
 		AddNpcController(test_unit)
 	}
 
