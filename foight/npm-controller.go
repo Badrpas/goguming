@@ -142,12 +142,16 @@ func AddNpcController(unit *Unit) {
 		unit.Game.TranslateCamera(opts)
 		screen.DrawImage(_BULLET_IMG, opts)
 
-		//dir := cp.Vector{unit.Dx, unit.Dy}.Mult(20)
+		{
+			from := TranslatePosFromCamera(unit.Game.Camera, unit.GetPosition())
+			to := TranslatePosFromCamera(unit.Game.Camera, controller.target_point)
+			//debug.DrawLine(screen, from, to, color.White)
+			ebitenutil.DrawLine(screen, from.X, from.Y, to.X, to.Y, color.White)
 
-		from := TranslatePosFromCamera(unit.Game.Camera, unit.GetPosition())
-		to := TranslatePosFromCamera(unit.Game.Camera, controller.target_point)
-		//debug.DrawLine(screen, from, to, color.White)
-		ebitenutil.DrawLine(screen, from.X, from.Y, to.X, to.Y, color.White)
+			dir := cp.Vector{unit.Dx, unit.Dy}.Mult(20)
+			to = from.Add(dir)
+			ebitenutil.DrawLine(screen, from.X, from.Y, to.X, to.Y, color.RGBA{255, 0, 125, 255})
+		}
 	}
 }
 
@@ -156,12 +160,17 @@ func stateUpdate(unit *Unit) {
 
 	switch controller.state {
 	case IDLE:
+		unit.Dx, unit.Dy = 0, 0
 		// find point to move to
 		var closest *Player = nil
+		const MAX_DISTANCE = 500.0
+		distance := MAX_DISTANCE
 		for _, entity := range unit.Game.Entities {
 			if player, ok := entity.Holder.(*Player); ok {
-				if closest == nil || closest.GetPosition().Distance(unit.GetPosition()) > unit.GetPosition().DistanceSq(entity.GetPosition()) {
+				d := unit.GetPosition().Distance(entity.GetPosition())
+				if distance > d {
 					closest = player
+					distance = d
 				}
 			}
 		}
