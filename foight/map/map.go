@@ -21,6 +21,8 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 		return err
 	}
 
+	ProcessMapProperties(game, file.Properties)
+
 	layer := file.Layers[0]
 	tiles := layer.Tiles
 
@@ -74,6 +76,13 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 	}
 
 	return nil
+}
+
+func ProcessMapProperties(game *foight.Game, properties *tiled.Properties) {
+	mode := properties.GetString("game_mode")
+	if mode == "coop" {
+		game.Mode = foight.GameModeCoop
+	}
 }
 
 func CollectNpcInfos(group *tiled.ObjectGroup) []*foight.NpcSpawnInfo {

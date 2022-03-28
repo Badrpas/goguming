@@ -29,7 +29,16 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+type GameMode uint
+
+const (
+	GameModeDeathmatch GameMode = iota
+	GameModeCoop
+)
+
 type Game struct {
+	Mode GameMode
+
 	Camera   *camera.Camera
 	Entities []*Entity
 
@@ -57,6 +66,7 @@ type NpcSpawnInfo struct {
 
 func NewGame() *Game {
 	game := &Game{
+		Mode:         GameModeDeathmatch,
 		Space:        cp.NewSpace(),
 		Nav:          pathfind.NewNav(100, 100),
 		TimerManager: &util.TimeHolder{},

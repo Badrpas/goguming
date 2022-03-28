@@ -51,6 +51,8 @@ type Player struct {
 	messages chan net.UpdateMessage
 }
 
+const PLAYER_COOP_TEAM = 100009876
+
 func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 
 	player := &Player{
@@ -83,6 +85,10 @@ func NewPlayer(g *Game, name string, color imagecolor.Color) *Player {
 	player.SetColor(color)
 
 	player.Team = player.ID
+	if g.Mode == GameModeCoop {
+		player.Team = PLAYER_COOP_TEAM
+	}
+
 	player.Unit.Init(g)
 
 	player.Respawn()
