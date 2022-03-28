@@ -84,9 +84,9 @@ func CollectNpcInfos(group *tiled.ObjectGroup) []*foight.NpcSpawnInfo {
 			Pos:    cp.Vector{object.X, object.Y},
 			Name:   object.Name,
 			Weapon: "default",
-			Color:  color.White,
+			Color:  color.RGBA{255, 0, 200, 255},
 			HP:     5,
-			Team:   100,
+			Team:   -1,
 		}
 
 		for _, property := range object.Properties {

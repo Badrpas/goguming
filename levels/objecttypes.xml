@@ -3,6 +3,7 @@
  <objecttype name="NPC_Enemy" color="#a43716">
   <property name="color" type="color" default="#ffd113e2"/>
   <property name="hp" type="int" default="5"/>
+  <property name="team" type="int" default="-1"/>
   <property name="weapon" type="string" default="default"/>
  </objecttype>
 </objecttypes>

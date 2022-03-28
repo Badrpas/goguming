@@ -141,13 +141,17 @@
   </object>
  </objectgroup>
  <objectgroup color="#ff6417" id="3" name="npc_spawn_info">
-  <object id="8" gid="3" x="2098.53" y="1000.65" width="64" height="64"/>
+  <object id="8" gid="3" x="2098.53" y="1000.65" width="64" height="64">
+   <properties>
+    <property name="team" type="int" value="33"/>
+   </properties>
+  </object>
   <object id="9" gid="3" x="1809.94" y="1281.71" width="64" height="64"/>
   <object id="10" gid="3" x="1340.68" y="1294.26" width="64" height="64"/>
   <object id="11" name="Blue Boy" gid="3" x="989.351" y="686.969" width="64" height="64">
    <properties>
     <property name="color" type="color" value="#ff2ae2dc"/>
-    <property name="wp" type="object" value="10"/>
+    <property name="team" type="int" value="33"/>
    </properties>
   </object>
  </objectgroup>

@@ -183,14 +183,18 @@ func stateUpdate(unit *Unit) {
 	case IDLE:
 		unit.Dx, unit.Dy = 0, 0
 		// find point to move to
-		var closest *Player = nil
+		var closest *Unit = nil
 		const MAX_DISTANCE = 500.0
 		distance := MAX_DISTANCE
 		for _, entity := range unit.Game.Entities {
-			if player, ok := entity.Holder.(*Player); ok {
+			if entity.Team == unit.Team {
+				continue
+			}
+
+			if target_unit, ok := GetUnitFromEntity(entity); ok {
 				d := unit.GetPosition().Distance(entity.GetPosition())
 				if distance > d && isInLos(unit.Entity, entity, unit.Game.Nav) {
-					closest = player
+					closest = target_unit
 					distance = d
 				}
 			}

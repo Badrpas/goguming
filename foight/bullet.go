@@ -54,6 +54,11 @@ func NewBullet(g *Game, x, y float64) *Bullet {
 			log.Fatalln("Received non bullet entity")
 			return
 		}
+
+		if other.Team == e.Team {
+			return
+		}
+
 		b.applyDamageTo(other)
 	}
 

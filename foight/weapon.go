@@ -56,6 +56,7 @@ func DefaultWeaponEmit(w *Weapon, dir cp.Vector) {
 		w.LastFireAt = time.Now().UnixMilli()
 
 		b := NewBullet(e.Game, e.X, e.Y)
+		b.Team = w.Holder.Team
 		b.Shape.Filter.Group = e.Shape.Filter.Group
 		b.DrawOpts.ColorM = e.DrawOpts.ColorM
 		b.Lifespan = 800
