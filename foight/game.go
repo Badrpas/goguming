@@ -94,7 +94,10 @@ func NewGame() *Game {
 		AddNpcController(test_unit)
 	}
 
-	add_test_unit_at(cp.Vector{60, 60})
+	debug := false
+	if debug {
+		add_test_unit_at(cp.Vector{60, 60})
+	}
 	//add_test_unit_at(cp.Vector{1060, 60})
 	//add_test_unit_at(cp.Vector{60, 960})
 	//add_test_unit_at(cp.Vector{1260, 960})
@@ -398,7 +401,7 @@ func addLocalPlayer(g *Game) {
 	}
 	local_player_added = true
 
-	player := NewPlayer(g, "Local Yoba", color.Gray{255})
+	player := NewPlayer(g, "Local Yoba", color.Gray{235})
 	super_preupdate := player.PreUpdateFn
 	player.PreUpdateFn = func(e *Entity, dt float64) {
 		var dx, dy, tx, ty float64

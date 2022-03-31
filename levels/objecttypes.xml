@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objecttypes>
+ <objecttype name="FLAG" color="#16caac">
+  <property name="color" type="color" default="#ff33d606"/>
+ </objecttype>
  <objecttype name="NPC_Enemy" color="#a43716">
   <property name="color" type="color" default="#ffd113e2"/>
   <property name="hp" type="int" default="5"/>

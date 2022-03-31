@@ -68,6 +68,9 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 				game.SpawnNpc(info)
 			}
 
+		case "flags":
+			ProcessFlagInfos(game, objectGroup)
+
 		default:
 			log.Println("Unknown object group name", objectGroup.Name)
 			continue
@@ -79,6 +82,9 @@ func LoadToGameTiled(path string, game *foight.Game) error {
 }
 
 func ProcessMapProperties(game *foight.Game, properties *tiled.Properties) {
+	if properties == nil {
+		return
+	}
 	mode := properties.GetString("game_mode")
 	if mode == "coop" {
 		game.Mode = foight.GameModeCoop
@@ -131,6 +137,17 @@ func CollectPositions(objectGroup *tiled.ObjectGroup) []cp.Vector {
 	}
 
 	return points
+}
+
+func ProcessFlagInfos(game *foight.Game, group *tiled.ObjectGroup) {
+	flag_handler := foight.NewFlagHandler()
+	game.AddEntity(flag_handler.Entity)
+
+	for _, info := range group.Objects {
+		pos := cp.Vector{info.X, info.Y}
+		flag := foight.NewFlag(pos, flag_handler)
+		flag.Init(game)
+	}
 }
 
 func SetWallAroundPoint(nav *pathfind.Nav, x, y, radius int) {

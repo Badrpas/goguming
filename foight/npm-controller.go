@@ -259,7 +259,6 @@ func recalculateUnitPath(unit *Unit, controller *NpcController, target cp.Vector
 	controller.next_path_calc = util.TimeNow() + PATH_CALC_INTERVAL
 	controller.target_pos = node.Vector
 	controller.path = path
-
 }
 
 func updateAttack(unit *Unit, controller *NpcController) {

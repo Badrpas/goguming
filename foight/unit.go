@@ -45,7 +45,7 @@ func NewUnit(name string, x, y float64, img *ebiten.Image) *Unit {
 			img,
 		),
 
-		Speed:         1500,
+		Speed:         1900,
 		ForceModifier: 1,
 	}
 

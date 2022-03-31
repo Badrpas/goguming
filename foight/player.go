@@ -17,8 +17,9 @@ import (
 )
 
 var (
-	mplusNormalFont font.Face
-	_PLAYER_IMAGE   = imagestore.Images["ploier.png"]
+	mplusNormalFont   font.Face
+	mplusNormalFont20 font.Face
+	_PLAYER_IMAGE     = imagestore.Images["ploier.png"]
 )
 
 const (
@@ -35,6 +36,11 @@ func init() {
 	const dpi = 72
 	mplusNormalFont, err = opentype.NewFace(tt, &opentype.FaceOptions{
 		Size:    16,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	mplusNormalFont20, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    20,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
