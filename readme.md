@@ -30,16 +30,20 @@ $ git clone https://github.com/Badrpas/goguming.git
 $ cd goguming
 ```
 
-#### Build web client
+#### Build
 ```shell
-$ cd front
-$ npm i && npm run build
-$ cd ..
+$ make
+```
+This builds web client and `game` executable 
+
+#### Run
+```shell
+$ make run
 ```
 
-#### Build and run
+#### Or both in one step
 ```shell
-$ go run .
+$ make build run
 ```
 
 #### CLI options
